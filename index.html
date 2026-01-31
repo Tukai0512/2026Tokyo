@@ -14,7 +14,6 @@
     <script>
         window.onerror = function(msg, url, line) {
             console.error("Error: " + msg + " at line " + line);
-            // 如果出錯，強制移除遮罩，讓內容顯示出來，不要卡在黑畫面
             const mask = document.getElementById('loading-mask');
             if(mask) mask.style.display = 'none';
         };
@@ -44,7 +43,6 @@
             window.dispatchEvent(new Event('firebase-ready'));
         } catch (e) {
             console.error("Firebase Init Error:", e);
-            // 失敗也通知，讓畫面解鎖
             window.dispatchEvent(new Event('firebase-ready'));
         }
     </script>
@@ -53,7 +51,8 @@
         /* CSS 樣式 */
         :root {
             --bg-base: #313338; --bg-card: #2B2D31; --text-main: #F2F3F5; --text-sub: #B5BAC1;
-            --accent: #5865F2; --green: #23A559; --red: #DA373C; --divider: #1E1F22;
+            --accent: #5865F2; /* Discord Blurple */
+            --green: #23A559; --red: #DA373C; --divider: #1E1F22;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
@@ -99,10 +98,23 @@
         .btn-tukai { background: var(--green); }
         .btn-yuan { background: #F0B232; color: #313338; }
         
-        .bill-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--divider); }
-        .bill-tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: #404249; color: #ccc; margin-right: 6px; }
-        .bill-amount { font-weight: bold; font-size: 14px; }
-        .btn-del { background: transparent; color: var(--red); border: 1px solid var(--red); padding: 4px 8px; border-radius: 4px; margin-left: 8px; }
+        /* 單行記帳樣式優化 */
+        .bill-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--divider); }
+        .bill-left { display: flex; align-items: center; flex: 1; overflow: hidden; gap: 8px; }
+        
+        .bill-tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: #404249; color: #ccc; white-space: nowrap; flex-shrink: 0; }
+        .bill-time { font-size: 11px; color: #72767d; white-space: nowrap; flex-shrink: 0; }
+        
+        /* 項目文字：單行省略 */
+        .bill-desc-text { 
+            font-size: 14px; color: var(--text-main); 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+            flex: 1; /* 佔滿剩餘空間 */
+        }
+
+        .bill-right { display: flex; align-items: center; gap: 8px; margin-left: 8px; flex-shrink: 0; }
+        .bill-amount { font-weight: bold; font-size: 14px; white-space: nowrap; }
+        .btn-del { background: transparent; color: var(--red); border: 1px solid var(--red); padding: 4px 8px; border-radius: 4px; font-size: 12px; }
 
         .stats-box { background: #1E1F22; padding: 12px; border-radius: 8px; margin-top: 10px; margin-bottom: 15px; }
         .stats-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; color: var(--text-sub); }
@@ -113,8 +125,10 @@
         .check-item.checked span { text-decoration: line-through; color: #5C5E66; }
 
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #1E1F22; border-top: 1px solid #111; display: flex; justify-content: space-around; padding: 10px 0 25px; z-index: 100; }
-        .nav-btn { border: none; background: none; display: flex; flex-direction: column; align-items: center; color: var(--text-sub); font-size: 10px; }
-        .nav-btn.active { color: #FFFFFF; }
+        .nav-btn { border: none; background: none; display: flex; flex-direction: column; align-items: center; color: var(--text-sub); font-size: 10px; transition: color 0.2s; }
+        
+        /* 底部導航選中樣式：使用強調色 */
+        .nav-btn.active { color: var(--accent); }
         .nav-icon { font-size: 20px; margin-bottom: 4px; }
 
         .view-section, .sub-view { display: none; }
@@ -135,7 +149,7 @@
     <div id="loading-mask">
         <div style="font-size: 24px; margin-bottom: 10px;">📡</div>
         <div>資料同步中...</div>
-        <div style="font-size: 12px; margin-top: 10px; opacity: 0.7;">(修復完成版)</div>
+        <div style="font-size: 12px; margin-top: 10px; opacity: 0.7;">(v3.1 更新版)</div>
     </div>
 
     <header>
@@ -191,7 +205,7 @@
                         <button class="action-btn btn-yuan" style="background:#F0B232; opacity:0.6" onclick="addSplit('YuanHelp')">元戎墊付<br><span style="font-size:10px">(我還)</span></button>
                     </div>
                 </div>
-                <div class="summary-box"><div>結算 (正=元戎給土開)</div><div class="summary-big" id="splitResult">計算中...</div></div>
+                <div class="summary-box"><div>結算結果</div><div class="summary-big" id="splitResult">計算中...</div></div>
                 <div class="card"><ul class="bill-list" id="splitList"></ul></div>
             </div>
 
@@ -260,37 +274,32 @@
                     splitLogs = [];
                     snapshot.forEach((d) => splitLogs.push({ id: d.id, ...d.data() }));
                     renderSplitUI();
-                    // 資料回來後，移除遮罩
                     const mask = document.getElementById('loading-mask');
                     if(mask) { mask.style.opacity = 0; setTimeout(()=>mask.style.display='none',500); }
                 }, (err) => console.error("Snapshot Error:", err));
             } catch (err) { console.error("Firebase Init:", err); }
         });
 
-        // --- UI Initialization (修復重點) ---
+        // --- UI ---
         document.addEventListener('DOMContentLoaded', () => {
             try {
                 updateClock(); setInterval(updateClock, 1000); getWeather();
                 renderChecklist(); renderPersonalUI(); 
-                switchMainTab('schedule'); // 這裡不會再報錯了
+                switchMainTab('schedule');
             } catch (e) {
                 console.error("Init Error:", e);
                 document.getElementById('loading-mask').style.display='none';
             }
         });
 
-        // --- 核心修復：不依賴 event 物件 ---
         function switchMainTab(tabName) {
-            // 1. 處理按鈕樣式
             const navBtns = document.querySelectorAll('.nav-btn');
             navBtns.forEach(btn => btn.classList.remove('active'));
             
-            // 手動指定哪個按鈕要亮 (這樣就不需要 event 了)
             if(tabName === 'schedule') navBtns[0].classList.add('active');
             if(tabName === 'money') navBtns[1].classList.add('active');
             if(tabName === 'list') navBtns[2].classList.add('active');
 
-            // 2. 處理頁面切換
             document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
             const target = document.getElementById(tabName === 'money' ? 'view-money' : tabName === 'list' ? 'view-list' : 'view-schedule');
             if(target) target.classList.add('active');
@@ -366,6 +375,7 @@
             await deleteDoc(doc(db, "splitLogs", id));
         }
 
+        // ✅ 單行顯示邏輯 (Split)
         function renderSplitUI() {
             const list = document.getElementById('splitList'); list.innerHTML = '';
             let debt = 0;
@@ -374,10 +384,25 @@
                 if (log.type === 'YuanAll') debt -= (log.amount/2);
                 if (log.type === 'TukaiHelp') debt += log.amount;
                 if (log.type === 'YuanHelp') debt -= log.amount;
+                
                 let tText = log.type.includes('Tukai')?'土開':'元戎';
                 let color = log.type.includes('Tukai')?'#23A559':'#F0B232';
                 let catTag = log.cat ? `<span class="bill-tag">${log.cat}</span>` : '';
-                list.innerHTML += `<li class="bill-item"><div class="bill-info"><div style="margin-bottom:2px">${catTag}<span style="color:${color};font-weight:bold;">[${tText}]</span> ${log.desc}</div><div class="bill-sub">${log.time}</div></div><div style="text-align:right"><div class="bill-amount">¥${log.amount}</div><button class="btn-del" onclick="deleteSplitLog('${log.id}')">✕</button></div></li>`;
+                
+                list.innerHTML += `
+                <li class="bill-item">
+                    <div class="bill-left">
+                        ${catTag}
+                        <span class="bill-time">${log.time}</span>
+                        <span class="bill-desc-text">
+                            <span style="color:${color};font-weight:bold;">[${tText}]</span> ${log.desc}
+                        </span>
+                    </div>
+                    <div class="bill-right">
+                        <div class="bill-amount">¥${log.amount}</div>
+                        <button class="btn-del" onclick="deleteSplitLog('${log.id}')">✕</button>
+                    </div>
+                </li>`;
             });
             const res = document.getElementById('splitResult');
             if(debt > 0) res.innerText = `元戎 給 土開 ¥${Math.ceil(debt)}`;
@@ -405,6 +430,7 @@
             renderPersonalUI();
         }
 
+        // ✅ 單行顯示邏輯 (Personal)
         function renderPersonalUI() {
             const list = document.getElementById('personalList'); list.innerHTML = '';
             const statsBox = document.getElementById('statsBox');
@@ -416,7 +442,19 @@
                 let c = log.cat || '其他';
                 if(!stats[c]) stats[c] = 0; stats[c] += log.amount;
                 let catTag = log.cat ? `<span class="bill-tag">${log.cat}</span>` : '';
-                list.innerHTML += `<li class="bill-item"><div class="bill-info"><div>${catTag}${log.desc}</div><div class="bill-sub">${log.time}</div></div><div style="text-align:right"><div class="bill-amount">¥${log.amount}</div><button class="btn-del" onclick="deletePersonal(${idx})">✕</button></div></li>`;
+                
+                list.innerHTML += `
+                <li class="bill-item">
+                    <div class="bill-left">
+                        ${catTag}
+                        <span class="bill-time">${log.time}</span>
+                        <span class="bill-desc-text">${log.desc}</span>
+                    </div>
+                    <div class="bill-right">
+                        <div class="bill-amount">¥${log.amount}</div>
+                        <button class="btn-del" onclick="deletePersonal(${idx})">✕</button>
+                    </div>
+                </li>`;
             });
             document.getElementById('personalResult').innerText = `¥ ${total}`;
 
