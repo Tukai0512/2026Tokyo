@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 東京行 (Discord風) 🇯🇵</title>
+    <title>2026 東京行 🇯🇵</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,7 +16,7 @@
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // ==========================================
-        // ⚠️⚠️ 請記得換回你的 Firebase 設定 ⚠️⚠️
+        // ✅ 已填入你的專屬設定
         // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyBWoyXsYdBpI24ln_Y-5o_p28OPdPL8qvw",
@@ -24,15 +24,17 @@
             projectId: "tokyo-eff7c",
             storageBucket: "tokyo-eff7c.firebasestorage.app",
             messagingSenderId: "531061949538",
-            appId: "1:531061949538:web:8c5e7c3eb1b8113f747d3b"
+            appId: "1:531061949538:web:8c5e7c3eb1b8113f747d3b",
             measurementId: "G-15QVTWMTYR"
         };
         // ==========================================
 
-        // 初始化
+        // 初始化 Firebase
         try {
             const app = initializeApp(firebaseConfig);
             const db = getFirestore(app);
+            
+            // 掛載到全域變數
             window.db = db;
             window.collection = collection;
             window.addDoc = addDoc;
@@ -41,195 +43,85 @@
             window.orderBy = orderBy;
             window.deleteDoc = deleteDoc;
             window.doc = doc;
+            
+            // 通知準備完成
             window.dispatchEvent(new Event('firebase-ready'));
         } catch (e) {
             console.error("Firebase Init Error:", e);
-            alert("Firebase 設定有誤，請檢查程式碼！");
+            alert("Firebase 初始化失敗，請檢查 Console。");
         }
     </script>
 
     <style>
-        /* --- Discord 風格配色變數 --- */
+        /* CSS 樣式 (Discord Dark Mode) */
         :root {
-            --bg-base: #313338;       /* 最深底色 */
-            --bg-card: #2B2D31;       /* 卡片顏色 */
-            --bg-hover: #404249;      /* 懸停顏色 */
-            --text-main: #F2F3F5;     /* 主要文字 (幾近白) */
-            --text-sub: #B5BAC1;      /* 次要文字 (灰) */
-            --accent: #5865F2;        /* Discord 紫藍色 */
-            --green: #23A559;         /* 成功綠 */
-            --red: #DA373C;           /* 危險紅 */
-            --divider: #1E1F22;       /* 分隔線 */
-            --nav-bg: #1E1F22;        /* 底部導航底色 */
+            --bg-base: #313338; --bg-card: #2B2D31; --text-main: #F2F3F5; --text-sub: #B5BAC1;
+            --accent: #5865F2; --green: #23A559; --red: #DA373C; --divider: #1E1F22;
         }
-
-        /* --- 基礎設定 --- */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
-            font-family: 'Noto Sans TC', sans-serif;
-            background-color: var(--bg-base);
-            color: var(--text-main);
-            margin: 0; padding: 0;
-            padding-bottom: 90px;
-            overflow-x: hidden;
-            -webkit-user-select: none;
+            font-family: 'Noto Sans TC', sans-serif; background-color: var(--bg-base);
+            color: var(--text-main); margin: 0; padding-bottom: 90px; -webkit-user-select: none;
         }
-
-        /* --- Header --- */
-        header {
-            background-color: var(--bg-card);
-            padding: 50px 20px 15px;
-            border-bottom: 1px solid var(--divider);
-        }
+        header { background-color: var(--bg-card); padding: 50px 20px 15px; border-bottom: 1px solid var(--divider); }
         .info-bar { display: flex; justify-content: space-between; align-items: flex-end; }
-        .time-box h1 { margin: 0; font-size: 24px; font-weight: 700; color: var(--text-main); }
+        .time-box h1 { margin: 0; font-size: 24px; font-weight: 700; }
         .time-box p { margin: 4px 0 0; font-size: 13px; color: var(--text-sub); }
-        .weather-temp { font-size: 20px; font-weight: bold; color: var(--text-main); display: block; }
-        #location { font-size: 12px; color: var(--text-sub); }
-
-        /* --- 滑動選單 (Chips) --- */
-        .scroll-menu {
-            display: flex; overflow-x: auto; padding: 15px;
-            background: var(--bg-base);
-            scrollbar-width: none;
-        }
+        .weather-temp { font-size: 20px; font-weight: bold; }
+        
+        .scroll-menu { display: flex; overflow-x: auto; padding: 15px; background: var(--bg-base); scrollbar-width: none; }
         .scroll-menu::-webkit-scrollbar { display: none; }
-        
         .chip {
-            background: var(--bg-card);
-            color: var(--text-sub);
-            padding: 8px 16px;
-            border-radius: 4px; /* Discord 風格比較方一點 */
-            font-size: 13px;
-            font-weight: 600;
-            margin-right: 8px;
-            border: none;
-            white-space: nowrap;
-            transition: 0.2s;
+            background: var(--bg-card); color: var(--text-sub); padding: 8px 16px; border-radius: 4px;
+            font-size: 13px; font-weight: 600; margin-right: 8px; border: none; white-space: nowrap;
         }
-        .chip.active {
-            background: var(--accent);
-            color: white;
-        }
+        .chip.active { background: var(--accent); color: white; }
 
-        /* --- 內容卡片 --- */
         .content-area { padding: 5px 15px; min-height: 60vh; }
-        .card {
-            background: var(--bg-card);
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 12px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
+        .card { background: var(--bg-card); border-radius: 8px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        h2 { font-size: 16px; margin: 0 0 12px 0; display: flex; align-items: center; }
+        h2::before { content: ''; width: 4px; height: 16px; background: var(--accent); margin-right: 8px; border-radius: 2px; }
         
-        h2 { 
-            font-size: 16px; 
-            margin: 0 0 12px 0; 
-            color: var(--text-main);
-            display: flex; align-items: center;
-        }
-        h2::before {
-            content: ''; display: inline-block; width: 4px; height: 16px;
-            background: var(--accent); margin-right: 8px; border-radius: 2px;
-        }
-
-        .item-row { display: flex; align-items: flex-start; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--divider); }
-        .item-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        
-        .time-badge { 
-            background: var(--bg-base); 
-            color: var(--text-sub);
-            padding: 2px 6px; border-radius: 4px; 
-            font-size: 12px; font-family: monospace; 
-            margin-right: 10px; min-width: 45px; text-align: center; 
-        }
+        .item-row { display: flex; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--divider); }
+        .time-badge { background: var(--bg-base); color: var(--text-sub); padding: 2px 6px; border-radius: 4px; font-size: 12px; margin-right: 10px; min-width: 45px; text-align: center; }
         .item-content { flex: 1; }
-        .item-title { font-weight: bold; font-size: 14px; margin-bottom: 2px; display: block; color: var(--text-main); }
-        .item-desc { font-size: 12px; color: var(--text-sub); margin: 0; }
+        .item-title { font-weight: bold; font-size: 14px; display: block; }
+        .item-desc { font-size: 12px; color: var(--text-sub); }
+        .map-btn { display: inline-block; margin-top: 6px; color: #00A8FC; font-size: 12px; text-decoration: none; }
 
-        /* Google Map 按鈕 (Discord Link Style) */
-        .map-btn {
-            display: inline-block; margin-top: 6px;
-            color: #00A8FC; font-size: 12px; font-weight: 500; text-decoration: none;
-        }
-        .map-btn:hover { text-decoration: underline; }
-
-        /* --- 記帳輸入區 --- */
-        .bill-input { 
-            width: 100%; padding: 10px; 
-            border: none; background: #1E1F22; /* 更深輸入框 */
-            color: white; border-radius: 4px; 
-            font-size: 16px; margin-bottom: 10px;
-        }
-        .bill-input::placeholder { color: #5C5E66; }
+        .bill-input { width: 100%; padding: 10px; border: none; background: #1E1F22; color: white; border-radius: 4px; font-size: 16px; margin-bottom: 10px; }
         .bill-input-group label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
-        
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
-        .action-btn { 
-            padding: 10px; border: none; border-radius: 4px; 
-            font-weight: bold; font-size: 13px; cursor: pointer; color: white;
-            transition: opacity 0.2s;
-        }
-        .action-btn:active { opacity: 0.7; }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .action-btn { padding: 10px; border: none; border-radius: 4px; font-weight: bold; font-size: 13px; cursor: pointer; color: white; }
         .btn-tukai { background: var(--green); }
-        .btn-yuan { background: #F0B232; color: #313338; } /* 黃色比較像 Discord 的身分組色 */
-        
-        .summary-box { 
-            background: #1E1F22; border: 1px solid var(--divider);
-            color: var(--text-sub); padding: 15px; border-radius: 8px; 
-            margin-top: 20px; text-align: center; 
-        }
-        .summary-big { font-size: 20px; font-weight: bold; color: var(--text-main); margin-top: 5px; }
-
-        /* --- 記帳列表 --- */
+        .btn-yuan { background: #F0B232; color: #313338; }
         .bill-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--divider); }
-        .bill-info { font-size: 13px; color: var(--text-main); }
-        .bill-sub { font-size: 11px; color: var(--text-sub); margin-top: 2px; }
-        .bill-amount { font-weight: bold; font-size: 14px; color: var(--text-main); }
-        .btn-del { 
-            background: transparent; color: var(--red); 
-            padding: 4px 8px; border-radius: 4px; font-size: 12px; 
-            border: 1px solid var(--red); margin-left: 8px;
-        }
+        .bill-amount { font-weight: bold; font-size: 14px; }
+        .btn-del { background: transparent; color: var(--red); border: 1px solid var(--red); padding: 4px 8px; border-radius: 4px; margin-left: 8px; }
 
-        /* --- Checkbox --- */
-        .check-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--divider); cursor: pointer; }
-        .check-item span { color: var(--text-main); }
+        .check-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--divider); }
         .check-item input { transform: scale(1.3); margin-right: 15px; accent-color: var(--accent); }
         .check-item.checked span { text-decoration: line-through; color: #5C5E66; }
 
-        /* --- 底部導航 --- */
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            background: var(--nav-bg);
-            border-top: 1px solid #111;
-            display: flex; justify-content: space-around;
-            padding: 10px 0 25px; z-index: 100;
-        }
-        .nav-btn { 
-            border: none; background: none; 
-            display: flex; flex-direction: column; align-items: center; 
-            color: var(--text-sub); font-size: 10px; 
-        }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #1E1F22; border-top: 1px solid #111; display: flex; justify-content: space-around; padding: 10px 0 25px; z-index: 100; }
+        .nav-btn { border: none; background: none; display: flex; flex-direction: column; align-items: center; color: var(--text-sub); font-size: 10px; }
         .nav-btn.active { color: var(--accent); }
         .nav-icon { font-size: 20px; margin-bottom: 4px; }
 
-        /* --- 功能性 Class --- */
         .view-section, .sub-view { display: none; }
         .view-section.active, .sub-view.active { display: block; animation: fadeIn 0.2s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
-        #loading-mask { 
-            position: fixed; top:0; left:0; width:100%; height:100%; 
-            background: var(--bg-base); z-index:999; 
-            display:flex; justify-content:center; align-items:center; 
-            color: var(--text-sub); transition: opacity 0.5s; 
-        }
+        #loading-mask { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg-base); z-index:999; display:flex; justify-content:center; align-items:center; color: var(--text-sub); flex-direction: column; }
     </style>
 </head>
 <body>
 
-    <div id="loading-mask">Discord 連線中...</div>
+    <div id="loading-mask">
+        <div style="font-size: 24px; margin-bottom: 10px;">📡</div>
+        <div>資料同步中...</div>
+        <div style="font-size: 12px; margin-top: 10px; opacity: 0.7;">(2026 東京行 - 已連線)</div>
+    </div>
 
     <header>
         <div class="info-bar">
@@ -247,335 +139,49 @@
     <div class="scroll-menu" id="topMenu"></div>
 
     <div class="content-area">
-
         <div id="view-schedule" class="view-section active">
             <div id="sub-day1" class="sub-view active">
                 <div class="card">
                     <h2>✈️ Day 1: 抵達東京</h2>
                     <div class="item-row">
                         <div class="time-badge">15:20</div>
-                        <div class="item-content">
-                            <span class="item-title">抵達成田機場 (NRT)</span>
-                            <span class="item-desc">入境、拿行李</span>
-                            <a href="https://www.google.com/maps/search/?api=1&query=成田國際機場" class="map-btn" target="_blank">Google Map ↗</a>
-                        </div>
+                        <div class="item-content"><span class="item-title">抵達成田機場</span><span class="item-desc">入境、拿行李</span><a href="https://www.google.com/maps/search/?api=1&query=成田國際機場" class="map-btn" target="_blank">Map ↗</a></div>
                     </div>
                     <div class="item-row">
                         <div class="time-badge">18:00</div>
-                        <div class="item-content">
-                            <span class="item-title">Check-in 上野飯店</span>
-                            <span class="item-desc">Skyliner 直達</span>
-                            <a href="https://www.google.com/maps/search/?api=1&query=上野車站" class="map-btn" target="_blank">Google Map ↗</a>
-                        </div>
+                        <div class="item-content"><span class="item-title">Check-in 上野飯店</span><span class="item-desc">Skyliner 直達</span><a href="https://www.google.com/maps/search/?api=1&query=上野車站" class="map-btn" target="_blank">Map ↗</a></div>
                     </div>
                 </div>
             </div>
-            <div id="sub-day2" class="sub-view"><div class="card"><h2>🍃 Day 2: 吉卜力美術館</h2><p style="color:var(--text-sub)">週一前往</p></div></div>
-            <div id="sub-day3" class="sub-view"><div class="card"><h2>🏙️ Day 3: 市區探索</h2><p style="color:var(--text-sub)">週二自由日</p></div></div>
-            <div id="sub-day4" class="sub-view"><div class="card"><h2>🌊 Day 4: 鎌倉江之島</h2><p style="color:var(--text-sub)">週三前往</p></div></div>
-            <div id="sub-day5" class="sub-view"><div class="card"><h2>🛍️ Day 5: 採買日</h2><p style="color:var(--text-sub)">週四補貨</p></div></div>
-            <div id="sub-day6" class="sub-view"><div class="card"><h2>✈️ Day 6: 回家</h2><p style="color:var(--text-sub)">13:30 出發去機場</p></div></div>
+            <div id="sub-day2" class="sub-view"><div class="card"><h2>🍃 Day 2: 吉卜力</h2><p>週一前往</p></div></div>
+            <div id="sub-day3" class="sub-view"><div class="card"><h2>🏙️ Day 3: 市區探索</h2><p>週二自由日</p></div></div>
+            <div id="sub-day4" class="sub-view"><div class="card"><h2>🌊 Day 4: 鎌倉</h2><p>週三前往</p></div></div>
+            <div id="sub-day5" class="sub-view"><div class="card"><h2>🛍️ Day 5: 採買</h2><p>週四補貨</p></div></div>
+            <div id="sub-day6" class="sub-view"><div class="card"><h2>✈️ Day 6: 回家</h2><p>13:30 出發</p></div></div>
         </div>
 
         <div id="view-money" class="view-section">
             <div id="sub-split" class="sub-view active">
                 <div class="card">
                     <h2>💰 公款分帳 (雲端)</h2>
-                    <div class="bill-input-group">
-                        <label>項目名稱</label>
-                        <input type="text" id="splitDesc" class="bill-input" placeholder="例如：敘敘苑燒肉">
-                    </div>
-                    <div class="bill-input-group">
-                        <label>金額 (JPY)</label>
-                        <input type="number" id="splitAmount" class="bill-input" placeholder="0">
-                    </div>
+                    <div class="bill-input-group"><label>項目</label><input type="text" id="splitDesc" class="bill-input"></div>
+                    <div class="bill-input-group"><label>金額</label><input type="number" id="splitAmount" class="bill-input"></div>
                     <div class="btn-grid">
                         <button class="action-btn btn-tukai" onclick="addSplit('TukaiAll')">土開付全額<br><span style="font-size:10px">(均分)</span></button>
                         <button class="action-btn btn-yuan" onclick="addSplit('YuanAll')">元戎付全額<br><span style="font-size:10px">(均分)</span></button>
-                        <button class="action-btn btn-tukai" style="background:#23A559; opacity:0.6" onclick="addSplit('TukaiHelp')">土開幫墊<br><span style="font-size:10px">(對方還全額)</span></button>
-                        <button class="action-btn btn-yuan" style="background:#F0B232; opacity:0.6" onclick="addSplit('YuanHelp')">元戎幫墊<br><span style="font-size:10px">(我還全額)</span></button>
+                        <button class="action-btn btn-tukai" style="background:#23A559; opacity:0.6" onclick="addSplit('TukaiHelp')">土開墊付<br><span style="font-size:10px">(對方還)</span></button>
+                        <button class="action-btn btn-yuan" style="background:#F0B232; opacity:0.6" onclick="addSplit('YuanHelp')">元戎墊付<br><span style="font-size:10px">(我還)</span></button>
                     </div>
                 </div>
-                <div class="summary-box">
-                    <div>結算結果 (正=元戎給土開)</div>
-                    <div class="summary-big" id="splitResult">計算中...</div>
-                </div>
-                <div class="card">
-                    <h3 style="color:var(--text-sub); font-size:12px;">紀錄列表</h3>
-                    <ul class="bill-list" id="splitList"></ul>
-                </div>
+                <div class="summary-box"><div>結算 (正=元戎給土開)</div><div class="summary-big" id="splitResult">計算中...</div></div>
+                <div class="card"><ul class="bill-list" id="splitList"></ul></div>
             </div>
-
             <div id="sub-wallet" class="sub-view">
-                <div class="card" style="border-left: 4px solid var(--accent);">
-                    <h2>👛 我的錢包 (土開)</h2>
-                    <div class="bill-input-group">
-                        <label>個人消費</label>
-                        <input type="text" id="personalDesc" class="bill-input" placeholder="項目">
-                    </div>
-                    <div class="bill-input-group">
-                        <label>金額 (JPY)</label>
-                        <input type="number" id="personalAmount" class="bill-input" placeholder="0">
-                    </div>
+                <div class="card" style="border-left:4px solid var(--accent)">
+                    <h2>👛 我的錢包</h2>
+                    <div class="bill-input-group"><label>項目</label><input type="text" id="personalDesc" class="bill-input"></div>
+                    <div class="bill-input-group"><label>金額</label><input type="number" id="personalAmount" class="bill-input"></div>
                     <button class="action-btn" style="width:100%; background:var(--accent);" onclick="addPersonal()">加入個人記帳</button>
                 </div>
-                <div class="summary-box">
-                    <div>總花費</div>
-                    <div class="summary-big" id="personalResult">¥ 0</div>
-                </div>
-                <div class="card">
-                    <ul class="bill-list" id="personalList"></ul>
-                </div>
-            </div>
-        </div>
-
-        <div id="view-list" class="view-section">
-            <div id="sub-check" class="sub-view active">
-                <div class="card">
-                    <h2>✅ 出發前檢查</h2>
-                    <div id="checklist-container"></div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <nav class="bottom-nav">
-        <button class="nav-btn active" onclick="switchMainTab('schedule')"><span class="nav-icon">📅</span><span>行程</span></button>
-        <button class="nav-btn" onclick="switchMainTab('money')"><span class="nav-icon">💰</span><span>記帳</span></button>
-        <button class="nav-btn" onclick="switchMainTab('list')"><span class="nav-icon">✅</span><span>清單</span></button>
-    </nav>
-
-    <script>
-        // --- 全域變數 ---
-        let db, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc;
-        let splitLogs = []; 
-        let personalLogs = JSON.parse(localStorage.getItem('personalLogs')) || [];
-
-        // --- 監聽 Firebase 準備完成 ---
-        window.addEventListener('firebase-ready', () => {
-            console.log("Firebase SDK Loaded");
-            db = window.db;
-            collection = window.collection;
-            addDoc = window.addDoc;
-            onSnapshot = window.onSnapshot;
-            query = window.query;
-            orderBy = window.orderBy;
-            deleteDoc = window.deleteDoc;
-            doc = window.doc;
-
-            // 啟動即時監聽
-            const q = query(collection(db, "splitLogs"), orderBy("timestamp", "desc"));
-            onSnapshot(q, (querySnapshot) => {
-                splitLogs = [];
-                querySnapshot.forEach((doc) => {
-                    splitLogs.push({ id: doc.id, ...doc.data() });
-                });
-                renderSplitUI();
-                document.getElementById('loading-mask').style.opacity = 0;
-                setTimeout(()=> document.getElementById('loading-mask').style.display='none', 500);
-            });
-        });
-
-        // --- UI 操作 ---
-        document.addEventListener('DOMContentLoaded', () => {
-            updateClock(); setInterval(updateClock, 1000);
-            getWeather();
-            renderChecklist();
-            renderPersonalUI(); 
-            switchMainTab('schedule');
-        });
-
-        function switchMainTab(tabName) {
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active'));
-            if(tabName === 'schedule') document.getElementById('view-schedule').classList.add('active');
-            if(tabName === 'money') document.getElementById('view-money').classList.add('active');
-            if(tabName === 'list') document.getElementById('view-list').classList.add('active');
-            renderTopMenu(tabName);
-        }
-
-        function renderTopMenu(tabName) {
-            const menu = document.getElementById('topMenu');
-            menu.innerHTML = '';
-            let items = [];
-            if (tabName === 'schedule') {
-                items = [
-                    { id: 'sub-day1', name: 'Day 1' }, { id: 'sub-day2', name: 'Day 2' },
-                    { id: 'sub-day3', name: 'Day 3' }, { id: 'sub-day4', name: 'Day 4' },
-                    { id: 'sub-day5', name: 'Day 5' }, { id: 'sub-day6', name: 'Day 6' }
-                ];
-            } else if (tabName === 'money') {
-                items = [{ id: 'sub-split', name: '公款分帳' }, { id: 'sub-wallet', name: '個人錢包' }];
-            } else {
-                items = [{ id: 'sub-check', name: '出發清單' }];
-            }
-            items.forEach((item, index) => {
-                const btn = document.createElement('button');
-                btn.className = `chip ${index === 0 ? 'active' : ''}`;
-                btn.innerText = item.name;
-                btn.onclick = () => switchSubTab(item.id, btn);
-                menu.appendChild(btn);
-            });
-            switchSubTab(items[0].id, menu.children[0]);
-        }
-
-        function switchSubTab(subId, btnElement) {
-            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-            if(btnElement) btnElement.classList.add('active');
-            document.querySelectorAll('.sub-view').forEach(div => div.classList.remove('active'));
-            const target = document.getElementById(subId);
-            if(target) target.classList.add('active');
-        }
-
-        // --- 核心邏輯：新增 Firebase 資料 ---
-        async function addSplit(type) {
-            const desc = document.getElementById('splitDesc').value;
-            const amount = parseInt(document.getElementById('splitAmount').value);
-            if(!desc || isNaN(amount)) return alert("請輸入項目和金額");
-
-            const timeStr = new Date().toLocaleString('zh-TW', {hour12:false, month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'});
-            
-            try {
-                await addDoc(collection(db, "splitLogs"), {
-                    desc: desc,
-                    amount: amount,
-                    type: type,
-                    time: timeStr,
-                    timestamp: new Date() 
-                });
-            } catch (e) {
-                alert("連線錯誤：" + e.message);
-                return;
-            }
-
-            // 連動個人記帳
-            let myShare = 0;
-            let syncNote = "";
-            if (type === 'TukaiAll') { myShare = amount / 2; syncNote = `[公款] ${desc}`; }
-            else if (type === 'YuanAll') { myShare = amount / 2; syncNote = `[公款] ${desc}`; }
-            else if (type === 'YuanHelp') { myShare = amount; syncNote = `[墊付] ${desc}`; }
-            
-            if (myShare > 0) {
-                personalLogs.unshift({ desc: syncNote, amount: myShare, time: timeStr });
-                localStorage.setItem('personalLogs', JSON.stringify(personalLogs));
-                renderPersonalUI();
-            }
-
-            document.getElementById('splitDesc').value = '';
-            document.getElementById('splitAmount').value = '';
-        }
-
-        async function deleteSplitLog(id) {
-            if(!confirm("確定要刪除這筆雲端資料嗎？")) return;
-            await deleteDoc(doc(db, "splitLogs", id));
-        }
-
-        function renderSplitUI() {
-            const list = document.getElementById('splitList');
-            list.innerHTML = '';
-            let debt = 0; 
-            
-            splitLogs.forEach((log) => {
-                if (log.type === 'TukaiAll') debt += (log.amount / 2);
-                if (log.type === 'YuanAll') debt -= (log.amount / 2);
-                if (log.type === 'TukaiHelp') debt += log.amount;
-                if (log.type === 'YuanHelp') debt -= log.amount;
-
-                let typeText = '';
-                let color = '';
-                if(log.type.includes('Tukai')) { typeText = '土開'; color='#23A559'; }
-                else { typeText = '元戎'; color='#F0B232'; }
-
-                list.innerHTML += `
-                    <li class="bill-item">
-                        <div class="bill-info">
-                            <span style="color:${color}; font-weight:bold;">[${typeText}]</span> ${log.desc}
-                            <div class="bill-sub">${log.time}</div>
-                        </div>
-                        <div style="text-align:right">
-                            <div class="bill-amount">¥${log.amount}</div>
-                            <button class="btn-del" onclick="deleteSplitLog('${log.id}')">✕</button>
-                        </div>
-                    </li>`;
-            });
-
-            const resultDiv = document.getElementById('splitResult');
-            if(debt > 0) resultDiv.innerText = `元戎 給 土開 ¥${Math.ceil(debt)}`;
-            else if(debt < 0) resultDiv.innerText = `土開 給 元戎 ¥${Math.ceil(Math.abs(debt))}`;
-            else resultDiv.innerText = "目前結清";
-        }
-
-        function addPersonal() {
-            const desc = document.getElementById('personalDesc').value;
-            const amount = parseInt(document.getElementById('personalAmount').value);
-            if(!desc || isNaN(amount)) return alert("請輸入");
-            const time = new Date().toLocaleString('zh-TW', {hour12:false, month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'});
-            personalLogs.unshift({ desc, amount, time });
-            localStorage.setItem('personalLogs', JSON.stringify(personalLogs));
-            renderPersonalUI();
-            document.getElementById('personalDesc').value = '';
-            document.getElementById('personalAmount').value = '';
-        }
-
-        function deletePersonal(index) {
-            if(!confirm("刪除此筆個人記帳？")) return;
-            personalLogs.splice(index, 1);
-            localStorage.setItem('personalLogs', JSON.stringify(personalLogs));
-            renderPersonalUI();
-        }
-
-        function renderPersonalUI() {
-            const list = document.getElementById('personalList');
-            list.innerHTML = '';
-            let total = 0;
-            personalLogs.forEach((log, index) => {
-                total += log.amount;
-                list.innerHTML += `
-                    <li class="bill-item">
-                        <div class="bill-info">${log.desc}<div class="bill-sub">${log.time}</div></div>
-                        <div style="text-align:right">
-                            <div class="bill-amount">¥${log.amount}</div>
-                            <button class="btn-del" onclick="deletePersonal(${index})">✕</button>
-                        </div>
-                    </li>`;
-            });
-            document.getElementById('personalResult').innerText = `¥ ${total}`;
-        }
-
-        function renderChecklist() {
-            const container = document.getElementById('checklist-container');
-            const data = ["護照", "VJW 截圖", "網卡/eSIM", "日幣現金", "行動電源", "充電線", "牙刷/牙膏", "常備藥"];
-            const saved = JSON.parse(localStorage.getItem('checklistState')) || {};
-            container.innerHTML = '';
-            data.forEach(item => {
-                const checked = saved[item] ? 'checked' : '';
-                container.innerHTML += `
-                    <label class="check-item ${checked}" onclick="toggleCheck(this, '${item}')">
-                        <input type="checkbox" ${checked ? 'checked' : ''}><span>${item}</span>
-                    </label>`;
-            });
-        }
-        function toggleCheck(el, item) {
-            const cb = el.querySelector('input');
-            if(event.target !== cb) cb.checked = !cb.checked;
-            el.classList.toggle('checked', cb.checked);
-            const saved = JSON.parse(localStorage.getItem('checklistState')) || {};
-            saved[item] = cb.checked;
-            localStorage.setItem('checklistState', JSON.stringify(saved));
-        }
-
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('clock').innerText = now.toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'});
-            document.getElementById('date').innerText = now.toLocaleDateString('zh-TW', {month:'numeric', day:'numeric', weekday:'short'});
-        }
-        function getWeather() {
-            fetch(`https://api.open-meteo.com/v1/forecast?latitude=35.6895&longitude=139.6917&current_weather=true`)
-            .then(res => res.json())
-            .then(data => { document.getElementById('weather').innerText = `${Math.round(data.current_weather.temperature)}°C`; });
-        }
-    </script>
-</body>
-</html>
+                <div class="summary-box"><div>總花費</div><div class="summary-big" id="personalResult">¥ 0</div></div>
+                <div class="card"><ul
