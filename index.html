@@ -16,7 +16,7 @@
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // ==========================================
-        // ✅ 已填入你的專屬設定
+        // ✅ 你的設定 (已填入)
         // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyBWoyXsYdBpI24ln_Y-5o_p28OPdPL8qvw",
@@ -48,7 +48,8 @@
             window.dispatchEvent(new Event('firebase-ready'));
         } catch (e) {
             console.error("Firebase Init Error:", e);
-            alert("Firebase 初始化失敗，請檢查 Console。");
+            // 失敗也通知，讓畫面解鎖
+            window.dispatchEvent(new Event('firebase-ready'));
         }
     </script>
 
@@ -112,7 +113,13 @@
         .view-section.active, .sub-view.active { display: block; animation: fadeIn 0.2s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
-        #loading-mask { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg-base); z-index:999; display:flex; justify-content:center; align-items:center; color: var(--text-sub); flex-direction: column; }
+        #loading-mask { 
+            position: fixed; top:0; left:0; width:100%; height:100%; 
+            background: var(--bg-base); z-index:999; 
+            display:flex; justify-content:center; align-items:center; 
+            color: var(--text-sub); flex-direction: column; 
+            transition: opacity 0.5s;
+        }
     </style>
 </head>
 <body>
@@ -120,7 +127,7 @@
     <div id="loading-mask">
         <div style="font-size: 24px; margin-bottom: 10px;">📡</div>
         <div>資料同步中...</div>
-        <div style="font-size: 12px; margin-top: 10px; opacity: 0.7;">(2026 東京行 - 已連線)</div>
+        <div style="font-size: 12px; margin-top: 10px; opacity: 0.7;">(如果卡住，3秒後會自動進入)</div>
     </div>
 
     <header>
@@ -184,4 +191,236 @@
                     <button class="action-btn" style="width:100%; background:var(--accent);" onclick="addPersonal()">加入個人記帳</button>
                 </div>
                 <div class="summary-box"><div>總花費</div><div class="summary-big" id="personalResult">¥ 0</div></div>
-                <div class="card"><ul
+                <div class="card"><ul class="bill-list" id="personalList"></ul></div>
+            </div>
+        </div>
+
+        <div id="view-list" class="view-section">
+            <div id="sub-check" class="sub-view active">
+                <div class="card"><h2>✅ 出發前檢查</h2><div id="checklist-container"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <button class="nav-btn active" onclick="switchMainTab('schedule')"><span class="nav-icon">📅</span><span>行程</span></button>
+        <button class="nav-btn" onclick="switchMainTab('money')"><span class="nav-icon">💰</span><span>記帳</span></button>
+        <button class="nav-btn" onclick="switchMainTab('list')"><span class="nav-icon">✅</span><span>清單</span></button>
+    </nav>
+
+    <script>
+        // --- 變數 ---
+        let db, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc;
+        let splitLogs = []; 
+        let personalLogs = JSON.parse(localStorage.getItem('personalLogs')) || [];
+        
+        // --- 強制解鎖機制 (Failsafe) ---
+        // 3秒後如果還沒解鎖，強制移除遮罩
+        setTimeout(() => {
+            const mask = document.getElementById('loading-mask');
+            if(mask && mask.style.display !== 'none') {
+                console.warn("Loading timeout, forcing unlock.");
+                mask.style.opacity = 0;
+                setTimeout(()=> mask.style.display = 'none', 500);
+            }
+        }, 3000);
+
+        // --- 監聽 Firebase ---
+        window.addEventListener('firebase-ready', () => {
+            console.log("Firebase SDK Ready");
+            db = window.db;
+            collection = window.collection;
+            addDoc = window.addDoc;
+            onSnapshot = window.onSnapshot;
+            query = window.query;
+            orderBy = window.orderBy;
+            deleteDoc = window.deleteDoc;
+            doc = window.doc;
+
+            try {
+                const q = query(collection(db, "splitLogs"), orderBy("timestamp", "desc"));
+                onSnapshot(q, (querySnapshot) => {
+                    splitLogs = [];
+                    querySnapshot.forEach((doc) => {
+                        splitLogs.push({ id: doc.id, ...doc.data() });
+                    });
+                    renderSplitUI();
+                    // 成功連線，正常解除遮罩
+                    const mask = document.getElementById('loading-mask');
+                    if(mask) {
+                        mask.style.opacity = 0;
+                        setTimeout(()=> mask.style.display='none', 500);
+                    }
+                }, (error) => {
+                    console.error("Snapshot Error:", error);
+                    // 權限錯誤也要解除遮罩，不然使用者會卡死
+                    const mask = document.getElementById('loading-mask');
+                    if(mask) mask.style.display='none';
+                    alert("無法讀取雲端資料，請檢查 Firebase 權限設定 (Rules)。");
+                });
+            } catch (err) {
+                console.error("Query Error:", err);
+                const mask = document.getElementById('loading-mask');
+                if(mask) mask.style.display='none';
+            }
+        });
+
+        // --- UI ---
+        document.addEventListener('DOMContentLoaded', () => {
+            updateClock(); setInterval(updateClock, 1000);
+            getWeather();
+            renderChecklist();
+            renderPersonalUI(); 
+            switchMainTab('schedule');
+        });
+
+        function switchMainTab(tabName) {
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active'));
+            if(tabName === 'schedule') document.getElementById('view-schedule').classList.add('active');
+            if(tabName === 'money') document.getElementById('view-money').classList.add('active');
+            if(tabName === 'list') document.getElementById('view-list').classList.add('active');
+            renderTopMenu(tabName);
+        }
+
+        function renderTopMenu(tabName) {
+            const menu = document.getElementById('topMenu');
+            menu.innerHTML = '';
+            let items = [];
+            if (tabName === 'schedule') {
+                items = [
+                    { id: 'sub-day1', name: 'Day 1' }, { id: 'sub-day2', name: 'Day 2' },
+                    { id: 'sub-day3', name: 'Day 3' }, { id: 'sub-day4', name: 'Day 4' },
+                    { id: 'sub-day5', name: 'Day 5' }, { id: 'sub-day6', name: 'Day 6' }
+                ];
+            } else if (tabName === 'money') {
+                items = [{ id: 'sub-split', name: '公款分帳' }, { id: 'sub-wallet', name: '個人錢包' }];
+            } else {
+                items = [{ id: 'sub-check', name: '出發清單' }];
+            }
+            items.forEach((item, index) => {
+                const btn = document.createElement('button');
+                btn.className = `chip ${index === 0 ? 'active' : ''}`;
+                btn.innerText = item.name;
+                btn.onclick = () => switchSubTab(item.id, btn);
+                menu.appendChild(btn);
+            });
+            switchSubTab(items[0].id, menu.children[0]);
+        }
+
+        function switchSubTab(subId, btnElement) {
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            if(btnElement) btnElement.classList.add('active');
+            document.querySelectorAll('.sub-view').forEach(div => div.classList.remove('active'));
+            const target = document.getElementById(subId);
+            if(target) target.classList.add('active');
+        }
+
+        async function addSplit(type) {
+            if(!db) return alert("連線異常，無法記錄公款！");
+            const desc = document.getElementById('splitDesc').value;
+            const amount = parseInt(document.getElementById('splitAmount').value);
+            if(!desc || isNaN(amount)) return alert("請輸入項目與金額");
+            const timeStr = new Date().toLocaleString('zh-TW', {hour12:false, month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'});
+            try {
+                await addDoc(collection(db, "splitLogs"), {
+                    desc: desc, amount: amount, type: type, time: timeStr, timestamp: new Date()
+                });
+            } catch (e) { return alert("寫入失敗 (請檢查 Firestore 權限)：" + e.message); }
+
+            let myShare = 0;
+            let syncNote = "";
+            if (type === 'TukaiAll') { myShare = amount / 2; syncNote = `[公款] ${desc}`; }
+            else if (type === 'YuanAll') { myShare = amount / 2; syncNote = `[公款] ${desc}`; }
+            else if (type === 'YuanHelp') { myShare = amount; syncNote = `[墊付] ${desc}`; }
+            if (myShare > 0) {
+                personalLogs.unshift({ desc: syncNote, amount: myShare, time: timeStr });
+                localStorage.setItem('personalLogs', JSON.stringify(personalLogs));
+                renderPersonalUI();
+            }
+            document.getElementById('splitDesc').value = '';
+            document.getElementById('splitAmount').value = '';
+        }
+
+        async function deleteSplitLog(id) {
+            if(!confirm("刪除雲端資料？")) return;
+            await deleteDoc(doc(db, "splitLogs", id));
+        }
+
+        function renderSplitUI() {
+            const list = document.getElementById('splitList');
+            list.innerHTML = '';
+            let debt = 0; 
+            splitLogs.forEach((log) => {
+                if (log.type === 'TukaiAll') debt += (log.amount / 2);
+                if (log.type === 'YuanAll') debt -= (log.amount / 2);
+                if (log.type === 'TukaiHelp') debt += log.amount;
+                if (log.type === 'YuanHelp') debt -= log.amount;
+                let typeText = log.type.includes('Tukai') ? '土開' : '元戎';
+                let color = log.type.includes('Tukai') ? '#23A559' : '#F0B232';
+                list.innerHTML += `<li class="bill-item"><div class="bill-info"><span style="color:${color}; font-weight:bold;">[${typeText}]</span> ${log.desc}<div class="bill-sub">${log.time}</div></div><div style="text-align:right"><div class="bill-amount">¥${log.amount}</div><button class="btn-del" onclick="deleteSplitLog('${log.id}')">✕</button></div></li>`;
+            });
+            const res = document.getElementById('splitResult');
+            if(debt > 0) res.innerText = `元戎 給 土開 ¥${Math.ceil(debt)}`;
+            else if(debt < 0) res.innerText = `土開 給 元戎 ¥${Math.ceil(Math.abs(debt))}`;
+            else res.innerText = "目前結清";
+        }
+
+        function addPersonal() {
+            const desc = document.getElementById('personalDesc').value;
+            const amount = parseInt(document.getElementById('personalAmount').value);
+            if(!desc || isNaN(amount)) return alert("請輸入");
+            const time = new Date().toLocaleString('zh-TW', {hour12:false, month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'});
+            personalLogs.unshift({ desc, amount, time });
+            localStorage.setItem('personalLogs', JSON.stringify(personalLogs));
+            renderPersonalUI();
+            document.getElementById('personalDesc').value = '';
+            document.getElementById('personalAmount').value = '';
+        }
+        function deletePersonal(idx) {
+            if(!confirm("刪除此筆？")) return;
+            personalLogs.splice(idx, 1);
+            localStorage.setItem('personalLogs', JSON.stringify(personalLogs));
+            renderPersonalUI();
+        }
+        function renderPersonalUI() {
+            const list = document.getElementById('personalList');
+            list.innerHTML = '';
+            let total = 0;
+            personalLogs.forEach((log, idx) => {
+                total += log.amount;
+                list.innerHTML += `<li class="bill-item"><div class="bill-info">${log.desc}<div class="bill-sub">${log.time}</div></div><div style="text-align:right"><div class="bill-amount">¥${log.amount}</div><button class="btn-del" onclick="deletePersonal(${idx})">✕</button></div></li>`;
+            });
+            document.getElementById('personalResult').innerText = `¥ ${total}`;
+        }
+        function renderChecklist() {
+            const container = document.getElementById('checklist-container');
+            const data = ["護照", "VJW 截圖", "網卡/eSIM", "日幣現金", "行動電源", "充電線", "牙刷/牙膏", "常備藥"];
+            const saved = JSON.parse(localStorage.getItem('checklistState')) || {};
+            container.innerHTML = '';
+            data.forEach(item => {
+                const chk = saved[item] ? 'checked' : '';
+                container.innerHTML += `<label class="check-item ${chk}" onclick="toggleCheck(this, '${item}')"><input type="checkbox" ${chk}><span>${item}</span></label>`;
+            });
+        }
+        function toggleCheck(el, item) {
+            const cb = el.querySelector('input');
+            if(event.target !== cb) cb.checked = !cb.checked;
+            el.classList.toggle('checked', cb.checked);
+            const saved = JSON.parse(localStorage.getItem('checklistState')) || {};
+            saved[item] = cb.checked;
+            localStorage.setItem('checklistState', JSON.stringify(saved));
+        }
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'});
+            document.getElementById('date').innerText = now.toLocaleDateString('zh-TW', {month:'numeric', day:'numeric', weekday:'short'});
+        }
+        function getWeather() {
+            fetch(`https://api.open-meteo.com/v1/forecast?latitude=35.6895&longitude=139.6917&current_weather=true`)
+            .then(res => res.json()).then(data => { document.getElementById('weather').innerText = `${Math.round(data.current_weather.temperature)}°C`; });
+        }
+    </script>
+</body>
+</html>
