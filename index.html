@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 東京行 (除錯模式) 🇯🇵</title>
+    <title>2026 東京行 🇯🇵</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -12,12 +12,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     
     <script>
-        window.onerror = function(msg, url, line, col, error) {
-            alert("❌ 發生錯誤！請截圖給工程師：\n" + msg + "\n行數：" + line);
-            // 強制移除遮罩，讓內容顯示出來
+        window.onerror = function(msg, url, line) {
+            console.error("Error: " + msg + " at line " + line);
+            // 如果出錯，強制移除遮罩，讓內容顯示出來，不要卡在黑畫面
             const mask = document.getElementById('loading-mask');
             if(mask) mask.style.display = 'none';
-            return false;
         };
     </script>
 
@@ -25,6 +24,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // ✅ 你的設定
         const firebaseConfig = {
             apiKey: "AIzaSyBWoyXsYdBpI24ln_Y-5o_p28OPdPL8qvw",
             authDomain: "tokyo-eff7c.firebaseapp.com",
@@ -43,7 +43,9 @@
             window.deleteDoc = deleteDoc; window.doc = doc;
             window.dispatchEvent(new Event('firebase-ready'));
         } catch (e) {
-            console.error("Firebase Error:", e);
+            console.error("Firebase Init Error:", e);
+            // 失敗也通知，讓畫面解鎖
+            window.dispatchEvent(new Event('firebase-ready'));
         }
     </script>
 
@@ -88,7 +90,6 @@
         .bill-input { width: 100%; padding: 10px; border: none; background: #1E1F22; color: white; border-radius: 4px; font-size: 16px; margin-bottom: 10px; }
         .bill-input-group label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
         
-        /* 類別按鈕 */
         .category-group { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
         .cat-btn { background: #1E1F22; color: var(--text-sub); border: 1px solid var(--divider); padding: 6px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
         .cat-btn.selected { background: var(--accent); color: white; border-color: var(--accent); }
@@ -117,7 +118,6 @@
         .nav-icon { font-size: 20px; margin-bottom: 4px; }
 
         .view-section, .sub-view { display: none; }
-        /* 重要：加上 !important 確保樣式優先權 */
         .view-section.active, .sub-view.active { display: block !important; animation: fadeIn 0.2s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
@@ -135,7 +135,7 @@
     <div id="loading-mask">
         <div style="font-size: 24px; margin-bottom: 10px;">📡</div>
         <div>資料同步中...</div>
-        <div style="font-size: 12px; margin-top: 10px; opacity: 0.7;">(除錯模式)</div>
+        <div style="font-size: 12px; margin-top: 10px; opacity: 0.7;">(修復完成版)</div>
     </div>
 
     <header>
@@ -248,7 +248,7 @@
             }
         }, 3000);
 
-        // --- Firebase 監聽 ---
+        // --- Firebase ---
         window.addEventListener('firebase-ready', () => {
             db = window.db; collection = window.collection; addDoc = window.addDoc;
             onSnapshot = window.onSnapshot; query = window.query; orderBy = window.orderBy;
@@ -260,34 +260,42 @@
                     splitLogs = [];
                     snapshot.forEach((d) => splitLogs.push({ id: d.id, ...d.data() }));
                     renderSplitUI();
+                    // 資料回來後，移除遮罩
+                    const mask = document.getElementById('loading-mask');
+                    if(mask) { mask.style.opacity = 0; setTimeout(()=>mask.style.display='none',500); }
                 }, (err) => console.error("Snapshot Error:", err));
             } catch (err) { console.error("Firebase Init:", err); }
         });
 
-        // --- 初始化 UI ---
+        // --- UI Initialization (修復重點) ---
         document.addEventListener('DOMContentLoaded', () => {
             try {
                 updateClock(); setInterval(updateClock, 1000); getWeather();
                 renderChecklist(); renderPersonalUI(); 
-                switchMainTab('schedule');
+                switchMainTab('schedule'); // 這裡不會再報錯了
             } catch (e) {
-                alert("初始化失敗：" + e.message);
-                // 即使失敗，也要確保內容顯示
+                console.error("Init Error:", e);
                 document.getElementById('loading-mask').style.display='none';
             }
         });
 
-        function switchMainTab(tab) {
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+        // --- 核心修復：不依賴 event 物件 ---
+        function switchMainTab(tabName) {
+            // 1. 處理按鈕樣式
+            const navBtns = document.querySelectorAll('.nav-btn');
+            navBtns.forEach(btn => btn.classList.remove('active'));
             
-            // 安全隱藏
+            // 手動指定哪個按鈕要亮 (這樣就不需要 event 了)
+            if(tabName === 'schedule') navBtns[0].classList.add('active');
+            if(tabName === 'money') navBtns[1].classList.add('active');
+            if(tabName === 'list') navBtns[2].classList.add('active');
+
+            // 2. 處理頁面切換
             document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-            
-            const target = document.getElementById(tab === 'money' ? 'view-money' : tab === 'list' ? 'view-list' : 'view-schedule');
+            const target = document.getElementById(tabName === 'money' ? 'view-money' : tabName === 'list' ? 'view-list' : 'view-schedule');
             if(target) target.classList.add('active');
             
-            renderTopMenu(tab);
+            renderTopMenu(tabName);
         }
 
         function renderTopMenu(tab) {
@@ -304,7 +312,6 @@
                 btn.onclick = () => switchSubTab(item.id, btn);
                 menu.appendChild(btn);
             });
-            // 安全切換子分頁
             if(items.length > 0 && menu.children.length > 0) {
                 switchSubTab(items[0].id, menu.children[0]);
             }
