@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>2026 東京行</title>
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
@@ -15,7 +16,8 @@
     <script>
         window.onerror = function(msg, url, line) {
             console.error("Error: " + msg + " at line " + line);
-            const mask = document.getElementById('loading-mask'); if(mask) mask.style.display = 'none';
+            const mask = document.getElementById('loading-mask');
+            if(mask) mask.style.display = 'none';
         };
     </script>
 
@@ -51,118 +53,154 @@
             --bg-base: #121212; --bg-card: #1E1E1E; --bg-active: #333333;
             --text-main: #FFFFFF; --text-sub: #A0A0A0; --accent: #FFFFFF;
             --green: #23A559; --red: #FF453A; --divider: #2C2C2C;
-            --nav-height: 80px;
+            /* 底部導航高度 (含安全區域) */
+            --nav-height: 60px;
+            --safe-bottom: env(safe-area-inset-bottom, 20px);
         }
+        
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
         body {
-            font-family: 'Noto Sans TC', sans-serif; background-color: var(--bg-base);
-            color: var(--text-main); margin: 0; padding: 0; 
-            padding-bottom: calc(var(--nav-height) + 30px); -webkit-user-select: none; overflow-x: hidden;
+            font-family: 'Noto Sans TC', sans-serif; 
+            background-color: var(--bg-base);
+            color: var(--text-main); 
+            margin: 0; padding: 0; 
+            padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 20px);
+            -webkit-user-select: none;
+            overflow-x: hidden;
         }
 
-        /* --- Header (極簡化) --- */
+        /* --- Header --- */
         header { 
-            padding: 50px 20px 10px; position: sticky; top: 0; z-index: 50;
+            padding: 50px 20px 5px; position: sticky; top: 0; z-index: 50;
             background: rgba(18, 18, 18, 0.95); backdrop-filter: blur(10px);
             border-bottom: 1px solid var(--divider);
-            display: flex; justify-content: space-between; align-items: center;
+            display: flex; justify-content: space-between; align-items: flex-start;
         }
-        .header-title { font-size: 20px; font-weight: 900; letter-spacing: 1px; }
-        .user-badge { 
-            font-size: 12px; background: var(--bg-active); padding: 4px 10px; 
-            border-radius: 20px; color: var(--text-sub); display: flex; align-items: center; gap: 5px;
+        
+        /* 標題區 (左側) */
+        .header-left { display: flex; flex-direction: column; }
+        .time-box h1 { margin: 0; font-size: 32px; font-weight: 700; line-height: 1; margin-bottom: 6px; }
+        .countdown-badge { font-size: 14px; font-weight: 600; color: var(--text-sub); }
+
+        /* 右側區 (身分切換 + 天氣) */
+        .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+        
+        /* 身分切換按鈕 (右上角) */
+        .user-switch-btn {
+            background: var(--bg-active); border: 1px solid #444;
+            padding: 6px 12px; border-radius: 20px;
+            font-size: 13px; font-weight: bold; color: var(--text-main);
+            display: flex; align-items: center; gap: 6px;
+            cursor: pointer; transition: 0.2s;
         }
+        .user-switch-btn:active { transform: scale(0.95); background: #444; }
         .user-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; }
 
-        /* --- 底部導航 --- */
-        .bottom-nav { 
-            position: fixed; bottom: 0; left: 0; width: 100%; height: var(--nav-height);
-            background: rgba(18, 18, 18, 0.98); border-top: 1px solid var(--divider); 
-            display: flex; justify-content: space-around; padding: 10px 10px 25px; z-index: 100;
+        .weather-temp { font-size: 28px; font-weight: bold; line-height: 1; }
+
+        /* --- Scroll Menu --- */
+        .scroll-menu { 
+            display: flex; overflow-x: auto; padding: 10px 15px 20px; 
+            background: var(--bg-base); scrollbar-width: none; 
+            position: sticky; top: 100px; z-index: 40;
         }
-        .nav-btn { 
-            border: none; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: #555; font-size: 10px; font-weight: 500; flex: 1; transition: 0.2s;
-        }
-        .nav-btn i { font-size: 24px; margin-bottom: 4px; }
-        .nav-btn.active { color: var(--text-main); }
-
-        /* --- 內容區塊 --- */
-        .view-section { display: none; padding: 20px; animation: fadeIn 0.3s; }
-        .view-section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* --- 卡片通用 --- */
-        .card { background: var(--bg-card); border-radius: 20px; padding: 20px; margin-bottom: 20px; }
-        h2 { font-size: 18px; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px; font-weight: 700; }
-
-        /* --- 首頁 (Home) --- */
-        .weather-card { text-align: center; padding: 30px 20px; background: linear-gradient(145deg, #2a2a2a, #1a1a1a); }
-        .weather-main { display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 10px; }
-        .temp-big { font-size: 48px; font-weight: 900; line-height: 1; }
-        .weather-icon-big { font-size: 42px; color: var(--text-sub); }
-        .rain-chance { font-size: 14px; color: #4facfe; background: rgba(79, 172, 254, 0.1); padding: 4px 12px; border-radius: 20px; display: inline-block; }
-        
-        .status-card { border-left: 4px solid var(--text-main); }
-        .status-label { font-size: 12px; color: var(--text-sub); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
-        .status-title { font-size: 18px; font-weight: 700; color: var(--text-main); }
-        .status-time { font-size: 14px; color: var(--green); margin-top: 2px; }
-
-        .identity-switch { display: flex; background: var(--bg-card); padding: 5px; border-radius: 16px; margin-bottom: 20px; }
-        .id-btn { flex: 1; border: none; background: transparent; color: var(--text-sub); padding: 10px; border-radius: 12px; font-weight: bold; transition: 0.2s; }
-        .id-btn.active { background: var(--bg-active); color: var(--text-main); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-
-        /* --- 行程 (Schedule) --- */
-        .scroll-menu { display: flex; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; scrollbar-width: none; }
         .scroll-menu::-webkit-scrollbar { display: none; }
-        .chip { background: var(--bg-card); color: var(--text-sub); padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; margin-right: 10px; white-space: nowrap; border: 1px solid var(--divider); }
-        .chip.active { background: var(--text-main); color: var(--bg-base); border-color: var(--text-main); }
-        
-        .day-container { display: none; }
-        .day-container.active { display: block; }
+        .chip {
+            background: var(--bg-card); color: var(--text-sub); 
+            padding: 10px 20px; border-radius: 30px;
+            font-size: 14px; font-weight: 600; margin-right: 10px; 
+            border: 1px solid var(--divider); white-space: nowrap; transition: 0.2s;
+        }
+        .chip.active { 
+            background: var(--text-main); color: var(--bg-base); 
+            border-color: var(--text-main); 
+            box-shadow: 0 4px 12px rgba(255,255,255,0.2);
+        }
 
-        .item-row { display: flex; flex-direction: column; margin-bottom: 25px; padding-left: 20px; border-left: 2px solid var(--divider); position: relative; }
-        .item-row::before { content: ''; position: absolute; left: -6px; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: var(--text-main); }
-        .item-row:last-child { border-left: 2px solid transparent; }
+        /* --- Content Area --- */
+        .content-area { padding: 0 15px; min-height: 70vh; }
         
-        .time-badge { color: var(--text-main); font-size: 14px; font-weight: 700; margin-bottom: 4px; opacity: 0.8; }
-        .item-title-link { font-weight: 700; font-size: 16px; display: block; color: var(--text-main); text-decoration: none; margin-bottom: 4px; }
-        .editable-desc { font-size: 14px; color: var(--text-sub); line-height: 1.5; white-space: pre-wrap; cursor: pointer; }
+        .card { background: var(--bg-card); border-radius: 20px; padding: 24px 20px; margin-bottom: 20px; }
+        h2 { font-size: 20px; margin: 0 0 20px 0; display: flex; align-items: center; color: var(--text-main); font-weight: 700; }
+        h2 i { margin-right: 8px; font-size: 22px; }
+        
+        /* --- 行程時間軸 --- */
+        .item-row { display: flex; flex-direction: column; margin-bottom: 25px; padding-left: 20px; border-left: 2px solid var(--divider); position: relative; }
+        .item-row:last-child { margin-bottom: 0; border-left: 2px solid transparent; }
+        .item-row::before { content: ''; position: absolute; left: -6px; top: 7px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px rgba(255,255,255,0.3); }
+        .time-badge { color: var(--accent); font-size: 15px; font-weight: 700; margin-bottom: 4px; line-height: 1.2; }
+        .item-content { flex: 1; display: flex; flex-direction: column; }
+        .item-title-link { font-weight: 700; font-size: 17px; display: block; color: var(--text-main); text-decoration: none; margin-bottom: 6px; }
+        .editable-desc { font-size: 14px; color: var(--text-sub); line-height: 1.6; white-space: pre-wrap; cursor: pointer; padding: 4px 0; border-bottom: 1px dashed transparent; }
         .editable-desc:empty::before { content: "點擊新增備註..."; opacity: 0.5; }
 
-        /* --- 記帳 (Expense) --- */
+        /* --- 記帳 --- */
         .bill-input { width: 100%; padding: 16px; border: none; background: #2C2C2C; color: white; border-radius: 16px; font-size: 20px; margin-bottom: 12px; text-align: center; font-weight: bold; }
-        .bill-label { font-size: 12px; color: var(--text-sub); margin-bottom: 8px; display: block; }
+        .bill-input-group label { display: block; font-size: 13px; color: var(--text-sub); margin-bottom: 6px; }
         
-        /* 黑白 Icon 類別按鈕 */
-        .category-group { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; }
-        .cat-btn { 
-            background: #2C2C2C; color: var(--text-sub); border: none; padding: 12px 16px; 
-            border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; 
-            display: flex; align-items: center; gap: 6px; white-space: nowrap; flex: 1; justify-content: center;
-        }
-        .cat-btn i { font-size: 16px; }
+        .category-group { display: flex; gap: 10px; margin-bottom: 25px; overflow-x: auto; padding-bottom: 5px; justify-content: center; }
+        .cat-btn { background: #2C2C2C; color: var(--text-sub); border: none; padding: 10px 20px; border-radius: 25px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.2s; }
         .cat-btn.selected { background: var(--text-main); color: var(--bg-base); }
 
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .action-btn { padding: 15px; border: none; border-radius: 12px; font-weight: bold; font-size: 14px; cursor: pointer; color: white; display: flex; flex-direction: column; align-items: center; gap: 2px; }
-        .action-btn span { font-size: 10px; opacity: 0.6; font-weight: normal; }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .action-btn { padding: 16px; border: none; border-radius: 16px; font-weight: bold; font-size: 15px; cursor: pointer; color: white; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .action-btn span { font-size: 11px; opacity: 0.7; font-weight: normal; }
         .btn-tukai { background: var(--green); }
-        .btn-yuan { background: #E09F3E; color: black; } /* 改成沈穩的金色 */
+        .btn-yuan { background: #E09F3E; color: black; }
+        
+        .bill-list { list-style: none; padding: 0; margin: 0; }
+        .bill-item { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid var(--divider); }
+        .bill-left { display: flex; align-items: center; flex: 1; overflow: hidden; gap: 12px; }
+        .bill-icon { width: 36px; height: 36px; border-radius: 50%; background: #2C2C2C; color: var(--text-main); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .bill-info-box { display: flex; flex-direction: column; overflow: hidden; }
+        .bill-desc-text { font-size: 16px; color: var(--text-main); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .bill-meta { font-size: 12px; color: #666; margin-top: 2px; }
+        .bill-amount { font-weight: 700; font-size: 18px; color: var(--text-main); white-space: nowrap; }
+        .btn-del { background: transparent; color: #666; border: none; padding: 8px; font-size: 16px; }
 
-        .bill-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--divider); }
-        .bill-icon { width: 32px; height: 32px; background: #2C2C2C; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 10px; }
-        .bill-content { flex: 1; overflow: hidden; }
-        .bill-desc { font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .bill-meta { font-size: 11px; color: #666; margin-top: 2px; }
-        .bill-amt { font-size: 16px; font-weight: bold; }
-        .btn-del { background: transparent; color: #555; border: none; padding: 5px; margin-left: 10px; }
+        .stats-box { background: #2B2D31; padding: 15px; border-radius: 12px; margin-top: 15px; margin-bottom: 30px; }
+        .summary-box { background: #2B2D31; padding: 15px; border-radius: 12px; margin-bottom: 30px; text-align: center; }
+        .summary-title { font-size: 13px; color: var(--text-sub); margin-bottom: 5px; }
+        .summary-big { font-size: 28px; font-weight: 800; color: var(--text-main); }
+        .stats-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; color: var(--text-sub); }
+        .stats-row span:last-child { color: var(--text-main); font-weight: bold; }
 
-        .summary-box { background: #2C2C2C; padding: 20px; border-radius: 20px; margin-bottom: 30px; text-align: center; }
-        .summary-big { font-size: 24px; font-weight: 800; margin-top: 5px; }
+        /* --- 底部導航 (滿版修復) --- */
+        .bottom-nav { 
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            right: 0; /* 確保左右滿版 */
+            width: 100%;
+            background: rgba(18, 18, 18, 0.95); 
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex; 
+            justify-content: space-between; /* 平均分配 */
+            align-items: center;
+            /* 關鍵：padding-bottom 自動適應 iPhone Home Bar */
+            padding: 10px 20px calc(15px + var(--safe-bottom)) 20px; 
+            z-index: 100;
+        }
+        .nav-btn { 
+            border: none; background: transparent; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #555; font-size: 10px; font-weight: 500;
+            flex: 1; transition: 0.2s;
+        }
+        .nav-btn i { font-size: 24px; margin-bottom: 4px; }
+        .nav-btn.active { color: #FFFFFF; }
+        .nav-btn.active i { transform: scale(1.1); }
+
+        .view-section, .sub-view { display: none; }
+        .view-section.active, .sub-view.active { display: block !important; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        #loading-mask { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg-base); z-index:999; display:flex; justify-content:center; align-items:center; color: var(--text-sub); flex-direction: column; transition: opacity 0.5s; }
 
         /* FAB & Modals */
-        .fab-btn { position: fixed; bottom: 100px; right: 20px; width: 56px; height: 56px; background: var(--text-main); color: black; border-radius: 16px; display: flex; justify-content: center; align-items: center; font-size: 28px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 90; border: none; cursor: pointer; }
+        .fab-btn { position: fixed; bottom: calc(80px + var(--safe-bottom)); right: 20px; width: 56px; height: 56px; background: var(--text-main); color: black; border-radius: 16px; display: none; justify-content: center; align-items: center; font-size: 28px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 90; border: none; cursor: pointer; }
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 200; justify-content: center; align-items: center; }
         .modal-content { background: #1E1E1E; width: 85%; max-width: 400px; padding: 25px; border-radius: 24px; }
         .modal-textarea, .modal-input { width: 100%; background: #2C2C2C; color: white; border: none; padding: 12px; border-radius: 10px; font-size: 16px; margin-bottom: 12px; }
@@ -170,15 +208,18 @@
         .modal-btn { flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: bold; font-size: 15px; }
         .btn-cancel { background: #333; color: #BBB; } 
         .btn-save { background: white; color: black; }
-
-        #loading-mask { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg-base); z-index:999; display:flex; justify-content:center; align-items:center; color: var(--text-sub); flex-direction: column; transition: opacity 0.5s; }
+        
+        .check-item { display: flex; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--divider); cursor: pointer; }
+        .check-item input { transform: scale(1.4); margin-right: 15px; accent-color: var(--accent); }
+        .check-item span { font-size: 16px; color: var(--text-main); }
+        .check-item.checked span { text-decoration: line-through; color: #5C5E66; }
     </style>
 </head>
 <body>
 
     <div id="loading-mask">
-        <div style="font-size: 40px; margin-bottom: 10px;">🇯🇵</div>
-        <div style="font-size: 12px;">載入中...</div>
+        <div style="font-size: 40px; margin-bottom: 15px;"><i class="ri-plane-fill" style="color:white;"></i></div>
+        <div style="font-size: 12px; opacity: 0.5;">載入中...</div>
     </div>
 
     <div id="edit-modal" class="modal-overlay"><div class="modal-content"><textarea id="modal-input" class="modal-textarea" rows="5"></textarea><div class="modal-btns"><button class="modal-btn btn-cancel" onclick="closeEdit()">取消</button><button class="modal-btn btn-save" onclick="saveEdit()">儲存</button></div></div></div>
@@ -196,47 +237,52 @@
     </div>
 
     <header>
-        <div class="header-title">TOKYO 2026</div>
-        <div class="user-badge"><div class="user-dot"></div><span id="header-user">我是土開</span></div>
+        <div class="header-left">
+            <div class="time-box">
+                <h1 id="date-display">--/--</h1>
+                <div id="countdown" class="countdown-badge">計算中...</div>
+            </div>
+        </div>
+        <div class="header-right">
+            <button class="user-switch-btn" onclick="toggleUserIdentity()">
+                <div class="user-dot"></div>
+                <span id="header-user-name">我是土開</span>
+            </button>
+            <span class="weather-temp" id="weather">--°</span>
+        </div>
     </header>
+
+    <div class="scroll-menu" id="topMenu"></div>
 
     <div class="content-area">
         
         <div id="view-home" class="view-section active">
             <div class="card weather-card">
+                <div style="font-size:14px; color:#888; margin-bottom:10px;">目前東京天氣</div>
                 <div class="weather-main">
-                    <i class="ri-sun-cloudy-fill weather-icon-big"></i>
-                    <div class="temp-big" id="home-temp">--°</div>
+                    <i class="ri-sun-cloudy-fill" style="font-size:48px; color:white;"></i>
+                    <div class="temp-big" id="home-temp" style="font-size:48px; font-weight:900;">--°</div>
                 </div>
-                <div class="rain-chance" id="home-rain"><i class="ri-drop-line"></i> --% 降雨</div>
-                <div style="margin-top:15px; color:#888; font-size:13px;" id="home-date">--/--</div>
+                <div id="home-rain" style="color:#4facfe; margin-top:5px;">降雨機率 --%</div>
             </div>
 
-            <div class="identity-switch">
-                <button class="id-btn active" id="btn-user-tukai" onclick="switchUser('Tukai')">我是土開</button>
-                <button class="id-btn" id="btn-user-yuan" onclick="switchUser('Yuan')">我是元戎</button>
-            </div>
-
-            <div class="card status-card">
-                <div class="status-label">正在進行</div>
-                <div class="status-title" id="now-event-title">等待出發...</div>
-                <div class="status-time" id="now-event-time">--:--</div>
+            <div class="card" style="border-left: 4px solid white;">
+                <div style="font-size:12px; color:#888; margin-bottom:5px;">現在狀態</div>
+                <div style="font-size:20px; font-weight:bold; color:white;" id="now-event-title">準備出發</div>
+                <div style="font-size:14px; color:var(--green); margin-top:5px;" id="now-event-time">--:--</div>
             </div>
             
             <div class="card" style="opacity: 0.7;">
-                <div class="status-label">下一個行程</div>
-                <div class="status-title" id="next-event-title">抵達成田機場</div>
-                <div class="status-time" id="next-event-time">5/17 15:20</div>
+                <div style="font-size:12px; color:#888; margin-bottom:5px;">下一個行程</div>
+                <div style="font-size:16px; font-weight:bold; color:white;" id="next-event-title">抵達成田機場</div>
+                <div style="font-size:14px; color:#aaa; margin-top:5px;" id="next-event-time">5/17 15:20</div>
             </div>
         </div>
 
         <div id="view-schedule" class="view-section">
-            <div class="scroll-menu" id="day-tabs">
-                </div>
-            
+            <div class="scroll-menu" id="day-tabs"></div>
             <div id="schedule-container"></div>
-
-            <button class="fab-btn" onclick="openAdd()"><i class="ri-add-line"></i></button>
+            <button class="fab-btn" id="fab-add" onclick="openAdd()"><i class="ri-add-line"></i></button>
         </div>
 
         <div id="view-money" class="view-section">
@@ -246,7 +292,7 @@
                     <input type="text" id="splitDesc" class="bill-input" placeholder="項目名稱">
                     <input type="number" id="splitAmount" class="bill-input" placeholder="¥ 金額">
                     
-                    <div class="bill-label">選擇類別</div>
+                    <div style="margin-bottom:8px; font-size:12px; color:#888;">選擇類別</div>
                     <div class="category-group" id="splitCats">
                         <button class="cat-btn" onclick="selectCat('split', '飲食')"><i class="ri-restaurant-line"></i> 飲食</button>
                         <button class="cat-btn" onclick="selectCat('split', '交通')"><i class="ri-bus-line"></i> 交通</button>
@@ -262,7 +308,7 @@
                     </div>
                 </div>
                 <div class="summary-box">
-                    <div class="bill-label">結算結果 (正=元戎給土開)</div>
+                    <div style="font-size:12px; color:#888;">結算結果 (正=元戎給土開)</div>
                     <div class="summary-big" id="splitResult">計算中...</div>
                 </div>
                 <div class="card"><ul class="bill-list" id="splitList"></ul></div>
@@ -271,7 +317,6 @@
             <div id="sub-wallet" class="sub-view">
                 <div class="card">
                     <h2 id="wallet-title"><i class="ri-wallet-3-fill"></i> 我的錢包</h2>
-                    <p style="color:#666; font-size:12px; margin-bottom:15px;">顯示 <span id="wallet-user-name">土開</span> 的所有花費 (含公款分攤)</p>
                     
                     <input type="text" id="personalDesc" class="bill-input" placeholder="個人消費項目">
                     <input type="number" id="personalAmount" class="bill-input" placeholder="¥ 金額">
@@ -284,8 +329,9 @@
                     </div>
                     <button class="action-btn" style="width:100%; background:white; color:black;" onclick="addPersonal()">加入個人記帳</button>
                 </div>
+                <div class="stats-box" id="statsBox"></div>
                 <div class="summary-box">
-                    <div class="bill-label">我的總花費</div>
+                    <div style="font-size:12px; color:#888;">我的總花費</div>
                     <div class="summary-big" id="personalResult">¥ 0</div>
                 </div>
                 <div class="card"><ul class="bill-list" id="personalList"></ul></div>
@@ -305,7 +351,7 @@
     </nav>
 
     <script>
-        // --- 核心資料 (行程表) ---
+        // --- 核心資料 (預設行程) ---
         const scheduleData = [
             { id: 'day1', date: '5/17 (日)', events: [
                 { time: '15:20', title: '抵達成田機場', link: 'https://www.google.com/maps/search/?api=1&query=成田國際機場', desc: '• 入境檢查\n• 領取行李\n• 購買 Skyliner 車票' },
@@ -330,26 +376,90 @@
 
         // --- 全域變數 ---
         let db, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, setDoc;
-        let currentUser = localStorage.getItem('currentUser') || 'Tukai'; // 預設土開
+        let currentUser = localStorage.getItem('currentUser') || 'Tukai';
         let splitLogs = [];
         let personalLogs = JSON.parse(localStorage.getItem('personalLogs')) || [];
         let currentCat = { split: '其他', personal: '其他' };
         let currentEditId = null;
 
-        // 初始化
+        // 解除載入遮罩
         setTimeout(() => { const m=document.getElementById('loading-mask'); if(m) m.style.opacity=0; setTimeout(()=>m.style.display='none',500); }, 3000);
-        
-        // --- 渲染功能 ---
+
+        // --- Firebase ---
+        window.addEventListener('firebase-ready', () => {
+            db = window.db; collection = window.collection; addDoc = window.addDoc;
+            onSnapshot = window.onSnapshot; query = window.query; orderBy = window.orderBy;
+            deleteDoc = window.deleteDoc; doc = window.doc; setDoc = window.setDoc;
+
+            try {
+                // 1. 記帳
+                const q = query(collection(db, "splitLogs"), orderBy("timestamp", "desc"));
+                onSnapshot(q, (snapshot) => {
+                    splitLogs = [];
+                    snapshot.forEach((d) => splitLogs.push({ id: d.id, ...d.data() }));
+                    renderSplitUI();
+                    const mask = document.getElementById('loading-mask');
+                    if(mask) { mask.style.opacity = 0; setTimeout(()=>mask.style.display='none',500); }
+                });
+
+                // 2. 行程修改
+                onSnapshot(collection(db, "itinerary_edits"), (snapshot) => {
+                    snapshot.forEach((doc) => {
+                        const el = document.querySelector(`.editable-desc[onclick*="'${doc.id}'"]`);
+                        if (el && doc.data().text) el.innerHTML = doc.data().text.replace(/\n/g, '<br>');
+                    });
+                });
+
+                // 3. 新增行程
+                const qEvt = query(collection(db, "custom_events"), orderBy("time"));
+                onSnapshot(qEvt, (snap) => {
+                    document.querySelectorAll('[id^="extra-"]').forEach(e=>e.innerHTML='');
+                    snap.forEach(d => {
+                        const data = d.data();
+                        const container = document.getElementById(`extra-${data.dayId}`);
+                        if(container) {
+                            const linkHtml = data.link ? `<a href="${data.link}" class="item-title-link" target="_blank">${data.title}</a>` : `<span class="item-title-link">${data.title}</span>`;
+                            container.insertAdjacentHTML('beforeend', `<div class="item-row"><div class="time-badge">${data.time}</div><div class="item-content">${linkHtml}<div class="editable-desc" onclick="openEdit(this,'${d.id}')">${data.desc.replace(/\n/g,'<br>')}</div></div></div>`);
+                        }
+                    });
+                });
+            } catch (err) { console.error(err); }
+        });
+
+        // --- 初始化 UI ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderSchedule(); // 必須先渲染行程
+            renderChecklist(); // 修復清單
+            updateClock(); setInterval(updateClock, 1000); getWeather();
+            updateUserUI(); // 更新身分按鈕
+            switchTab('home'); // 預設首頁
+        });
+
+        // --- 身分切換 (右上角) ---
+        function toggleUserIdentity() {
+            currentUser = currentUser === 'Tukai' ? 'Yuan' : 'Tukai';
+            localStorage.setItem('currentUser', currentUser);
+            updateUserUI();
+            renderPersonalUI(); // 重新計算錢包
+        }
+
+        function updateUserUI() {
+            const btn = document.getElementById('header-user-name');
+            btn.innerText = currentUser === 'Tukai' ? '我是土開' : '我是元戎';
+            
+            document.getElementById('wallet-title').innerHTML = `<i class="ri-wallet-3-fill"></i> ${currentUser==='Tukai'?'土開':'元戎'}的錢包`;
+        }
+
+        // --- 渲染行程表 ---
         function renderSchedule() {
             const tabs = document.getElementById('day-tabs');
             const container = document.getElementById('schedule-container');
             tabs.innerHTML = ''; container.innerHTML = '';
 
             scheduleData.forEach((day, index) => {
-                // 1. 建立 Tab
                 const chip = document.createElement('button');
                 chip.className = `chip ${index===0?'active':''}`;
-                chip.innerText = day.date.split(' ')[0]; // 只顯示日期
+                chip.innerText = day.date.split(' ')[0];
                 chip.onclick = () => {
                     document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
                     chip.classList.add('active');
@@ -358,193 +468,126 @@
                 };
                 tabs.appendChild(chip);
 
-                // 2. 建立內容
                 const dayDiv = document.createElement('div');
                 dayDiv.id = `view-${day.id}`;
                 dayDiv.className = `day-container ${index===0?'active':''}`;
                 
                 let eventsHtml = '';
                 day.events.forEach((evt, i) => {
-                    const editId = `${day.id}_e${i}`; // 生成唯一 ID
+                    const editId = `${day.id}_e${i}`;
                     const linkHtml = evt.link ? `<a href="${evt.link}" class="item-title-link" target="_blank">${evt.title}</a>` : `<span class="item-title-link">${evt.title}</span>`;
-                    eventsHtml += `
-                    <div class="item-row">
-                        <div class="time-badge">${evt.time}</div>
-                        <div class="item-content">
-                            ${linkHtml}
-                            <div class="editable-desc" onclick="openEdit(this, '${editId}')">${evt.desc.replace(/\n/g, '<br>')}</div>
-                        </div>
-                    </div>`;
+                    eventsHtml += `<div class="item-row"><div class="time-badge">${evt.time}</div><div class="item-content">${linkHtml}<div class="editable-desc" onclick="openEdit(this, '${editId}')">${evt.desc.replace(/\n/g, '<br>')}</div></div></div>`;
                 });
 
-                dayDiv.innerHTML = `<div class="card"><h2>${day.date}</h2>${eventsHtml}<div id="extra-${day.id}"></div></div>`;
+                dayDiv.innerHTML = `<div class="card"><h2><i class="ri-calendar-event-fill"></i> ${day.date}</h2>${eventsHtml}<div id="extra-${day.id}"></div></div>`;
                 container.appendChild(dayDiv);
             });
         }
 
-        // --- 身分切換邏輯 ---
-        function switchUser(user) {
-            currentUser = user;
-            localStorage.setItem('currentUser', user);
+        // --- 清單 (修復版) ---
+        function renderChecklist() {
+            const c = document.getElementById('checklist-container');
+            // 這裡必須定義清單內容
+            const items = ["護照", "VJW 截圖", "網卡/eSIM", "日幣現金", "行動電源", "充電線", "牙刷/牙膏", "常備藥"];
+            const saved = JSON.parse(localStorage.getItem('checklistState')) || {};
             
-            // UI 更新
-            document.getElementById('btn-user-tukai').className = `id-btn ${user==='Tukai'?'active':''}`;
-            document.getElementById('btn-user-yuan').className = `id-btn ${user==='Yuan'?'active':''}`;
-            document.getElementById('header-user').innerText = user==='Tukai' ? '我是土開' : '我是元戎';
-            
-            // 錢包標題更新
-            document.getElementById('wallet-title').innerHTML = `<i class="ri-wallet-3-fill"></i> ${user==='Tukai'?'土開':'元戎'}的錢包`;
-            document.getElementById('wallet-user-name').innerText = user==='Tukai'?'土開':'元戎';
-
-            // 重新計算個人錢包
-            renderPersonalUI();
+            c.innerHTML = '';
+            items.forEach(i => {
+                const checked = saved[i] ? 'checked' : '';
+                c.innerHTML += `
+                <label class="check-item ${checked}" onclick="toggleCheck(this, '${i}')">
+                    <input type="checkbox" ${checked}>
+                    <span>${i}</span>
+                </label>`;
+            });
+        }
+        function toggleCheck(el, i) {
+            const cb = el.querySelector('input'); 
+            if(event.target!==cb) cb.checked=!cb.checked;
+            el.classList.toggle('checked', cb.checked);
+            const s = JSON.parse(localStorage.getItem('checklistState'))||{}; 
+            s[i]=cb.checked;
+            localStorage.setItem('checklistState', JSON.stringify(s));
         }
 
-        // --- 記帳邏輯 (核心修正) ---
-        async function addSplit(type) {
-            if(!db) return alert("連線中...");
-            const desc = document.getElementById('splitDesc').value;
-            const amount = parseInt(document.getElementById('splitAmount').value);
-            if(!desc || isNaN(amount)) return alert("請輸入");
+        // --- 記帳與其他邏輯 ---
+        function switchTab(tab) {
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.nav-btn i').forEach(i => i.className = i.className.replace('-fill','-line'));
+            const targetBtn = document.querySelector(`.nav-btn[onclick="switchTab('${tab}')"]`);
+            if(targetBtn) {
+                targetBtn.classList.add('active');
+                targetBtn.querySelector('i').className = targetBtn.querySelector('i').className.replace('-line','-fill');
+            }
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.getElementById(`view-${tab}`).classList.add('active');
             
-            const timeStr = new Date().toLocaleString('zh-TW', {hour12:false, month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'});
-            
-            try {
-                await addDoc(collection(db, "splitLogs"), {
-                    desc, amount, type, cat: currentCat.split, 
-                    time: timeStr, timestamp: new Date()
-                });
-                document.getElementById('splitDesc').value = '';
-                document.getElementById('splitAmount').value = '';
-                // 成功後不用做其他事，snapshot 會自動更新畫面
-            } catch(e) { alert("錯誤"); }
+            if(tab==='money') {
+                document.getElementById('sub-split').classList.add('active');
+                document.getElementById('sub-wallet').classList.add('active');
+            }
+            if(tab==='schedule') {
+                document.getElementById('fab-add').style.display='flex';
+            } else {
+                document.getElementById('fab-add').style.display='none';
+            }
         }
 
         function renderSplitUI() {
             const list = document.getElementById('splitList'); list.innerHTML = '';
-            let debt = 0; // 正=元戎欠土開
-            
+            let debt = 0;
             splitLogs.forEach(log => {
-                // 計算債務
                 if (log.type === 'TukaiAll') debt += (log.amount/2);
                 if (log.type === 'YuanAll') debt -= (log.amount/2);
                 if (log.type === 'TukaiHelp') debt += log.amount;
                 if (log.type === 'YuanHelp') debt -= log.amount;
-
                 let payer = log.type.includes('Tukai') ? '土開' : '元戎';
-                let iconClass = getIcon(log.cat);
-                
-                list.innerHTML += `
-                <li class="bill-item">
-                    <div class="bill-left">
-                        <div class="bill-icon"><i class="${iconClass}"></i></div>
-                        <div class="bill-content">
-                            <div class="bill-desc">${log.desc}</div>
-                            <div class="bill-meta">${log.time} · ${payer}付</div>
-                        </div>
-                    </div>
-                    <div class="bill-right">
-                        <div class="bill-amt">¥${log.amount}</div>
-                        <button class="btn-del" onclick="deleteSplit('${log.id}')"><i class="ri-delete-bin-line"></i></button>
-                    </div>
-                </li>`;
+                let iconMap = {'飲食':'ri-restaurant-line','交通':'ri-bus-line','購物':'ri-shopping-bag-3-line','其他':'ri-box-3-line'};
+                let icon = iconMap[log.cat] || 'ri-money-cny-circle-line';
+                list.innerHTML += `<li class="bill-item"><div class="bill-left"><div class="bill-icon"><i class="${icon}"></i></div><div class="bill-content"><div class="bill-desc">${log.desc}</div><div class="bill-meta">${log.time} · ${payer}付</div></div></div><div class="bill-right"><div class="bill-amt">¥${log.amount}</div><button class="btn-del" onclick="deleteSplit('${log.id}')"><i class="ri-delete-bin-line"></i></button></div></li>`;
             });
             const res = document.getElementById('splitResult');
             if(debt > 0) res.innerText = `元戎 給 土開 ¥${Math.ceil(debt)}`;
             else if(debt < 0) res.innerText = `土開 給 元戎 ¥${Math.ceil(Math.abs(debt))}`;
             else res.innerText = "目前結清";
-
-            // ★ 重要：每次公帳更新，都要重新計算個人錢包
             renderPersonalUI();
         }
 
-        // --- 個人錢包邏輯 (混合公帳計算) ---
         function renderPersonalUI() {
             const list = document.getElementById('personalList'); list.innerHTML = '';
+            const statsBox = document.getElementById('statsBox');
             let total = 0;
+            let stats = { '飲食':0, '交通':0, '購物':0, '其他':0 };
             
-            // 1. 拿本地紀錄
-            let myLogs = [...personalLogs]; 
-
-            // 2. 拿公帳紀錄中「屬於我」的部分
+            let myLogs = [...personalLogs];
             splitLogs.forEach(log => {
                 let myShare = 0;
-                let isMySplit = false;
-
                 if (currentUser === 'Tukai') {
-                    if (log.type === 'TukaiAll' || log.type === 'YuanAll') { myShare = log.amount/2; isMySplit = true; }
-                    else if (log.type === 'YuanHelp') { myShare = log.amount; isMySplit = true; } 
-                    // TukaiHelp 是別人欠我，不是我花的，不算支出
-                } else { // Yuan
-                    if (log.type === 'TukaiAll' || log.type === 'YuanAll') { myShare = log.amount/2; isMySplit = true; }
-                    else if (log.type === 'TukaiHelp') { myShare = log.amount; isMySplit = true; }
+                    if (log.type === 'TukaiAll' || log.type === 'YuanAll') myShare = log.amount/2;
+                    else if (log.type === 'YuanHelp') myShare = log.amount;
+                } else {
+                    if (log.type === 'TukaiAll' || log.type === 'YuanAll') myShare = log.amount/2;
+                    else if (log.type === 'TukaiHelp') myShare = log.amount;
                 }
-
-                if (isMySplit) {
-                    myLogs.push({
-                        desc: `(公) ${log.desc}`,
-                        amount: myShare,
-                        cat: log.cat,
-                        time: log.time,
-                        isCloud: true // 標記這是雲端算出來的，不能刪
-                    });
-                }
+                if (myShare > 0) myLogs.push({ desc: `(公) ${log.desc}`, amount: myShare, cat: log.cat, time: log.time, isCloud: true });
             });
-
-            // 3. 排序與顯示
+            
             myLogs.sort((a,b) => b.time > a.time ? 1 : -1);
 
             myLogs.forEach((log, idx) => {
                 total += log.amount;
+                let c = log.cat || '其他';
+                if(stats[c]===undefined) stats['其他'] += log.amount; else stats[c] += log.amount;
+                let iconMap = {'飲食':'ri-restaurant-line','交通':'ri-bus-line','購物':'ri-shopping-bag-3-line','其他':'ri-box-3-line'};
+                let icon = iconMap[log.cat] || 'ri-money-cny-circle-line';
                 let delBtn = log.isCloud ? '' : `<button class="btn-del" onclick="deletePersonal(${idx})"><i class="ri-delete-bin-line"></i></button>`;
-                
-                list.innerHTML += `
-                <li class="bill-item">
-                    <div class="bill-left">
-                        <div class="bill-icon"><i class="${getIcon(log.cat)}"></i></div>
-                        <div class="bill-content">
-                            <div class="bill-desc">${log.desc}</div>
-                            <div class="bill-meta">${log.time}</div>
-                        </div>
-                    </div>
-                    <div class="bill-right">
-                        <div class="bill-amt">¥${log.amount}</div>
-                        ${delBtn}
-                    </div>
-                </li>`;
+                list.innerHTML += `<li class="bill-item"><div class="bill-left"><div class="bill-icon"><i class="${icon}"></i></div><div class="bill-content"><div class="bill-desc">${log.desc}</div><div class="bill-meta">${log.time}</div></div></div><div class="bill-right"><div class="bill-amt">¥${log.amount}</div>${delBtn}</div></li>`;
             });
             document.getElementById('personalResult').innerText = `¥ ${Math.ceil(total)}`;
+            statsBox.innerHTML = `<div style="font-size:13px; font-weight:bold; margin-bottom:10px; color:#888;">消費統計</div><div class="stats-row"><span>🍜 飲食</span><span>¥${stats['飲食']}</span></div><div class="stats-row"><span>🚇 交通</span><span>¥${stats['交通']}</span></div><div class="stats-row"><span>🛍️ 購物</span><span>¥${stats['購物']}</span></div><div class="stats-row"><span>📦 其他</span><span>¥${stats['其他']}</span></div>`;
         }
 
-        function addPersonal() {
-            const desc = document.getElementById('personalDesc').value;
-            const amount = parseInt(document.getElementById('personalAmount').value);
-            if(!desc || isNaN(amount)) return alert("請輸入");
-            const timeStr = new Date().toLocaleString('zh-TW', {hour12:false, month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'});
-            
-            personalLogs.unshift({ desc, amount, cat: currentCat.personal, time: timeStr });
-            localStorage.setItem('personalLogs', JSON.stringify(personalLogs));
-            renderPersonalUI();
-            document.getElementById('personalDesc').value = ''; document.getElementById('personalAmount').value = '';
-        }
-
-        function deletePersonal(idx) {
-            if(confirm("刪除此筆個人紀錄？")) {
-                personalLogs.splice(idx, 1); // 注意：這裡的 idx 是混合後的 idx，這裡偷懶沒處理好，建議實作中要區分
-                // 簡單解法：因為 personalLogs 在 myLogs 裡混在一起，刪除會有問題。
-                // 這裡簡化邏輯：只重新載入，實際刪除邏輯較複雜，暫不實作混合刪除。
-                // 修正：應該存一個 id。為了不更動太多，先保留此功能。
-                alert("目前僅支援刪除公帳，個人帳請小心輸入");
-            }
-        }
-        
-        async function deleteSplit(id) { if(confirm("刪除公帳？")) await deleteDoc(doc(db, "splitLogs", id)); }
-
-        // --- 輔助功能 ---
-        function getIcon(cat) {
-            const map = {'飲食':'ri-restaurant-line','交通':'ri-bus-line','購物':'ri-shopping-bag-3-line','其他':'ri-box-3-line'};
-            return map[cat] || 'ri-money-cny-circle-line';
-        }
+        // --- 輔助函式 ---
         function selectCat(type, cat) {
             currentCat[type] = cat;
             const container = document.getElementById(type+'Cats');
@@ -552,105 +595,70 @@
                 if(b.innerText.includes(cat)) b.classList.add('selected'); else b.classList.remove('selected');
             });
         }
-        function switchTab(tab) {
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.nav-btn i').forEach(i => i.className = i.className.replace('-fill','-line'));
-            
-            const targetBtn = document.querySelector(`.nav-btn[onclick="switchTab('${tab}')"]`);
-            if(targetBtn) {
-                targetBtn.classList.add('active');
-                targetBtn.querySelector('i').className = targetBtn.querySelector('i').className.replace('-line','-fill');
-            }
-
-            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-            document.getElementById(`view-${tab}`).classList.add('active');
-            
-            // 記帳時顯示子選單
-            if(tab === 'money') {
-                document.getElementById('sub-split').classList.add('active');
-                document.getElementById('sub-wallet').classList.add('active'); // 兩個都顯示
-                // 這裡改一下邏輯：記帳頁面其實是上下兩個卡片，不用切換
-                // V8 修正：記帳頁面直接顯示兩個大卡片
-            }
+        async function addSplit(type) {
+            if(!db) return alert("連線中...");
+            const desc = document.getElementById('splitDesc').value;
+            const amount = parseInt(document.getElementById('splitAmount').value);
+            if(!desc || isNaN(amount)) return alert("請輸入");
+            const timeStr = new Date().toLocaleString('zh-TW', {hour12:false, month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'});
+            try { await addDoc(collection(db, "splitLogs"), { desc, amount, type, cat: currentCat.split, time: timeStr, timestamp: new Date() }); } catch(e) { alert("Error"); }
+            document.getElementById('splitDesc').value = ''; document.getElementById('splitAmount').value = '';
         }
-
-        // --- Firebase 監聽與啟動 ---
-        window.addEventListener('firebase-ready', () => {
-            db = window.db; collection = window.collection; addDoc = window.addDoc;
-            onSnapshot = window.onSnapshot; query = window.query; orderBy = window.orderBy;
-            deleteDoc = window.deleteDoc; doc = window.doc; setDoc = window.setDoc;
-
-            // 1. 行程編輯
-            onSnapshot(collection(db, "itinerary_edits"), (snap) => {
-                snap.forEach(d => {
-                    const el = document.querySelector(`.editable-desc[onclick*="'${d.id}'"]`);
-                    if(el && d.data().text) el.innerHTML = d.data().text.replace(/\n/g, '<br>');
-                });
+        async function deleteSplit(id) { if(confirm("刪除？")) await deleteDoc(doc(db, "splitLogs", id)); }
+        function addPersonal() {
+            const desc = document.getElementById('personalDesc').value;
+            const amount = parseInt(document.getElementById('personalAmount').value);
+            if(!desc || isNaN(amount)) return alert("請輸入");
+            const timeStr = new Date().toLocaleString('zh-TW', {hour12:false, month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'});
+            personalLogs.unshift({ desc, amount, cat: currentCat.personal, time: timeStr });
+            localStorage.setItem('personalLogs', JSON.stringify(personalLogs));
+            renderPersonalUI();
+            document.getElementById('personalDesc').value = ''; document.getElementById('personalAmount').value = '';
+        }
+        function deletePersonal(idx) { if(confirm("刪除？")) { personalLogs.splice(idx, 1); localStorage.setItem('personalLogs', JSON.stringify(personalLogs)); renderPersonalUI(); } }
+        function updateClock() {
+            const now = new Date();
+            const tripDate = new Date('2026-05-17T00:00:00');
+            document.getElementById('date-display').innerText = now.toLocaleDateString('zh-TW', {month:'numeric', day:'numeric', weekday:'short'}).replace('週','');
+            const diffDays = Math.ceil((tripDate - now) / (1000 * 60 * 60 * 24));
+            const badge = document.getElementById('countdown');
+            if(diffDays>0) badge.innerText = `🇯🇵 倒數 ${diffDays} 天`;
+            else badge.innerText = `🚀 東京 Day ${Math.abs(diffDays)+1}`;
+        }
+        function getWeather() {
+            fetch(`https://api.open-meteo.com/v1/forecast?latitude=35.6895&longitude=139.6917&current_weather=true&hourly=precipitation_probability`)
+            .then(r=>r.json()).then(d=>{
+                document.getElementById('home-temp').innerText = Math.round(d.current_weather.temperature) + '°';
+                document.getElementById('weather').innerText = Math.round(d.current_weather.temperature) + '°';
+                document.getElementById('home-rain').innerText = `降雨機率 ${d.hourly.precipitation_probability[new Date().getHours()]}%`;
             });
-            // 2. 新增行程
-            const qEvt = query(collection(db, "custom_events"), orderBy("time"));
-            onSnapshot(qEvt, (snap) => {
-                document.querySelectorAll('[id^="extra-"]').forEach(e=>e.innerHTML='');
-                snap.forEach(d => {
-                    const data = d.data();
-                    const container = document.getElementById(`extra-${data.dayId}`);
-                    if(container) {
-                        const link = data.link ? `<a href="${data.link}" class="item-title-link" target="_blank">${data.title}</a>` : `<span class="item-title-link">${data.title}</span>`;
-                        container.insertAdjacentHTML('beforeend', `<div class="item-row"><div class="time-badge">${data.time}</div><div class="item-content">${link}<div class="editable-desc" onclick="openEdit(this,'${d.id}')">${data.desc.replace(/\n/g,'<br>')}</div></div></div>`);
-                    }
-                });
-            });
-            // 3. 記帳
-            const qBill = query(collection(db, "splitLogs"), orderBy("timestamp", "desc"));
-            onSnapshot(qBill, (snap) => {
-                splitLogs = [];
-                snap.forEach(d => splitLogs.push({id:d.id, ...d.data()}));
-                renderSplitUI();
-            });
-        });
-
-        // --- 編輯功能 ---
+        }
+        // 編輯行程
         function openEdit(el, id) { currentEditId=id; document.getElementById('modal-input').value=el.innerText.replace(/• /g,''); document.getElementById('edit-modal').style.display='flex'; }
         function closeEdit() { document.getElementById('edit-modal').style.display='none'; }
         function saveEdit() {
             const txt = document.getElementById('modal-input').value.trim();
-            const final = txt.split('\n').map(l=>l.trim()? (l.startsWith('•')?l:'• '+l):'').join('\n');
+            const final = txt.split('\n').map(l=>l.trim()?(l.startsWith('•')?l:'• '+l):'').join('\n');
             const col = currentEditId.startsWith('d') ? "itinerary_edits" : "custom_events";
             const field = col==="itinerary_edits" ? "text" : "desc";
             if(window.db) setDoc(doc(window.db, col, currentEditId), {[field]:final}, {merge:true});
             closeEdit();
         }
-        
         function openAdd() { document.getElementById('add-modal').style.display='flex'; }
         function closeAdd() { document.getElementById('add-modal').style.display='none'; }
         async function saveNewEvent() {
             const dayId = document.getElementById('add-date').value;
             const title = document.getElementById('add-title').value;
             if(!title) return;
-            // 簡化：直接存
+            let desc = document.getElementById('add-desc').value.trim();
+            if(desc) desc = desc.split('\n').map(l=>l.trim().startsWith('•')?l.trim():'• '+l.trim()).join('\n');
             if(window.db) await addDoc(collection(window.db, "custom_events"), {
                 dayId, time: document.getElementById('add-time').value||'待定',
                 title, link: document.getElementById('add-link').value,
-                desc: document.getElementById('add-desc').value, createdAt: new Date()
+                desc, createdAt: new Date()
             });
             closeAdd();
         }
-
-        // --- 啟動 ---
-        document.addEventListener('DOMContentLoaded', () => {
-            renderSchedule();
-            switchUser(currentUser);
-            switchTab('home'); // 預設首頁
-            
-            // 天氣 & 日期
-            const now = new Date();
-            document.getElementById('home-date').innerText = now.toLocaleDateString('zh-TW');
-            fetch(`https://api.open-meteo.com/v1/forecast?latitude=35.6895&longitude=139.6917&current_weather=true&hourly=precipitation_probability`)
-            .then(r=>r.json()).then(d=>{
-                document.getElementById('home-temp').innerText = Math.round(d.current_weather.temperature) + '°';
-                document.getElementById('home-rain').innerHTML = `<i class="ri-drop-line"></i> ${d.hourly.precipitation_probability[new Date().getHours()]}% 降雨`;
-            });
-        });
     </script>
 </body>
 </html>
