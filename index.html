@@ -8,8 +8,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1E1F22">
-    
     <meta name="format-detection" content="telephone=no">
+
+    <link rel="apple-touch-icon" href="icon.png"> 
+    <link rel="shortcut icon" href="icon.png">
 
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     
@@ -23,9 +25,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // ✅ 你的設定
         const firebaseConfig = {
             apiKey: "AIzaSyBWoyXsYdBpI24ln_Y-5o_p28OPdPL8qvw",
             authDomain: "tokyo-eff7c.firebaseapp.com",
@@ -39,9 +40,10 @@
         try {
             const app = initializeApp(firebaseConfig);
             const db = getFirestore(app);
+            // 掛載全域變數供下方使用
             window.db = db; window.collection = collection; window.addDoc = addDoc;
             window.onSnapshot = onSnapshot; window.query = query; window.orderBy = orderBy;
-            window.deleteDoc = deleteDoc; window.doc = doc;
+            window.deleteDoc = deleteDoc; window.doc = doc; window.setDoc = setDoc;
             window.dispatchEvent(new Event('firebase-ready'));
         } catch (e) {
             console.error("Firebase Init Error:", e);
@@ -50,18 +52,18 @@
     </script>
 
     <style>
-        /* CSS 樣式 */
+        /* CSS 變數與基礎設定 */
         :root {
-            --bg-base: #121212;   /* 更深邃的黑 */
-            --bg-card: #1E1F22;   /* 卡片背景 */
-            --bg-active: #36373D; /* 選中狀態背景 */
+            --bg-base: #121212;
+            --bg-card: #1E1F22;
+            --bg-active: #36373D;
             --text-main: #FFFFFF; 
             --text-sub: #B5BAC1;
-            --accent: #5865F2;    /* 你的主題色 */
+            --accent: #5865F2;
             --green: #23A559; 
             --red: #DA373C; 
             --divider: #2B2D31;
-            --nav-height: 85px;   /* 底部導航高度 */
+            --nav-height: 85px;
         }
         
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -71,7 +73,7 @@
             background-color: var(--bg-base);
             color: var(--text-main); 
             margin: 0; padding: 0; 
-            padding-bottom: calc(var(--nav-height) + 20px); /* 避開底部導航 */
+            padding-bottom: calc(var(--nav-height) + 40px); /* 增加底部留白，解決黑邊問題 */
             -webkit-user-select: none;
             overflow-x: hidden;
         }
@@ -81,7 +83,7 @@
             background-color: var(--bg-card); 
             padding: 50px 20px 15px; 
             border-bottom: 1px solid var(--divider);
-            position: sticky; top: 0; z-index: 50; /* 固定在頂部 */
+            position: sticky; top: 0; z-index: 50;
         }
         .info-bar { display: flex; justify-content: space-between; align-items: flex-end; }
         .time-box h1 { margin: 0; font-size: 26px; font-weight: 700; letter-spacing: 0.5px; }
@@ -92,7 +94,7 @@
         .scroll-menu { 
             display: flex; overflow-x: auto; padding: 15px; 
             background: var(--bg-base); scrollbar-width: none; 
-            position: sticky; top: 96px; z-index: 40; /* 黏在 Header 下面 */
+            position: sticky; top: 96px; z-index: 40;
         }
         .scroll-menu::-webkit-scrollbar { display: none; }
         .chip {
@@ -114,7 +116,7 @@
             border-radius: 16px; 
             padding: 20px; 
             margin-bottom: 16px; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3); /* 更有層次感 */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
         
         h2 { 
@@ -122,16 +124,15 @@
             display: flex; align-items: center; color: var(--accent);
         }
         
-        /* --- 行程樣式 (時間軸風格) --- */
+        /* --- 行程樣式 --- */
         .item-row { 
-            display: flex; flex-direction: column; /* 改成垂直排列，時間在上方 */
+            display: flex; flex-direction: column;
             margin-bottom: 20px; padding-left: 12px; 
-            border-left: 2px solid var(--divider); /* 左側時間軸線 */
+            border-left: 2px solid var(--divider);
             position: relative;
         }
         .item-row:last-child { margin-bottom: 0; border-left: 2px solid transparent; }
         
-        /* 時間點圓點 */
         .item-row::before {
             content: ''; position: absolute; left: -6px; top: 0;
             width: 10px; height: 10px; border-radius: 50%;
@@ -141,7 +142,6 @@
         .time-badge { 
             color: var(--accent); font-size: 13px; font-weight: 800; 
             margin-bottom: 4px; letter-spacing: 0.5px;
-            /* 拿掉原本的背景框 */
         }
         
         .item-content { flex: 1; display: flex; flex-direction: column; }
@@ -151,9 +151,20 @@
             color: var(--text-main); text-decoration: none; margin-bottom: 4px; 
         }
         .item-title-link:active { opacity: 0.7; }
-        .item-desc { font-size: 14px; color: var(--text-sub); line-height: 1.4; }
+        
+        /* ✨ 可編輯的描述樣式 */
+        .editable-desc {
+            font-size: 14px; color: var(--text-sub); line-height: 1.4;
+            border-bottom: 1px dashed rgba(181, 186, 193, 0.3); /* 虛線底線提示可點擊 */
+            cursor: pointer; padding-bottom: 2px;
+            transition: color 0.2s;
+        }
+        .editable-desc:active { color: var(--text-main); }
+        .editable-desc::after {
+            content: ' ✎'; font-size: 10px; opacity: 0.5; margin-left: 4px;
+        }
 
-        /* --- 記帳樣式 (大字體、置中) --- */
+        /* --- 記帳樣式 --- */
         .bill-input { width: 100%; padding: 14px; border: none; background: #2B2D31; color: white; border-radius: 12px; font-size: 18px; margin-bottom: 12px; }
         .bill-input-group label { display: block; font-size: 13px; color: var(--text-sub); margin-bottom: 6px; }
         
@@ -170,80 +181,46 @@
         .btn-tukai { background: var(--green); }
         .btn-yuan { background: #F0B232; color: #313338; }
         
-        /* 明細列表優化 */
         .bill-list { list-style: none; padding: 0; margin: 0; }
         .bill-item { 
             display: flex; align-items: center; justify-content: space-between; 
-            padding: 16px 0; /* 增加上下間距 */
-            border-bottom: 1px solid var(--divider); 
+            padding: 16px 0; border-bottom: 1px solid var(--divider); 
         }
-        .bill-left { 
-            display: flex; align-items: center; flex: 1; 
-            overflow: hidden; gap: 10px; 
-        }
+        .bill-left { display: flex; align-items: center; flex: 1; overflow: hidden; gap: 10px; }
         
-        .bill-tag { 
-            font-size: 12px; padding: 4px 8px; border-radius: 6px; 
-            background: #36373D; color: var(--text-main); 
-            white-space: nowrap; flex-shrink: 0; 
-        }
+        .bill-tag { font-size: 12px; padding: 4px 8px; border-radius: 6px; background: #36373D; color: var(--text-main); white-space: nowrap; flex-shrink: 0; }
         .bill-time { font-size: 12px; color: #72767d; white-space: nowrap; flex-shrink: 0; }
-        
-        .bill-desc-text { 
-            font-size: 16px; /* 字體加大 */
-            font-weight: 500;
-            color: var(--text-main); 
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
-            flex: 1;
-        }
-
+        .bill-desc-text { font-size: 16px; font-weight: 500; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
         .bill-right { display: flex; align-items: center; gap: 12px; margin-left: 10px; flex-shrink: 0; }
-        .bill-amount { 
-            font-weight: 700; font-size: 18px; /* 金額加大 */
-            color: var(--text-main); 
-            white-space: nowrap; 
-        }
-        .btn-del { 
-            background: rgba(218, 55, 60, 0.1); color: var(--red); 
-            border: none; padding: 6px 10px; border-radius: 6px; font-size: 12px; 
-        }
+        .bill-amount { font-weight: 700; font-size: 18px; color: var(--text-main); white-space: nowrap; }
+        .btn-del { background: rgba(218, 55, 60, 0.1); color: var(--red); border: none; padding: 6px 10px; border-radius: 6px; font-size: 12px; }
 
-        .stats-box { background: #2B2D31; padding: 15px; border-radius: 12px; margin-top: 15px; margin-bottom: 20px; }
+        /* 統計區塊與結算間距 */
+        .stats-box { background: #2B2D31; padding: 15px; border-radius: 12px; margin-top: 15px; margin-bottom: 30px; } /* 增加下方間距 */
+        .summary-box { background: #2B2D31; padding: 15px; border-radius: 12px; margin-bottom: 30px; text-align: center; } /* 增加下方間距 */
+        .summary-big { font-size: 20px; font-weight: bold; color: var(--text-main); margin-top: 5px; }
+
         .stats-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; color: var(--text-sub); }
         .stats-row span:last-child { color: var(--text-main); font-weight: bold; }
 
-        /* --- 底部導航 (參照圖片風格) --- */
+        /* --- 底部導航 --- */
         .bottom-nav { 
-            position: fixed; bottom: 0; left: 0; width: 100%; 
-            height: var(--nav-height);
-            background: rgba(30, 31, 34, 0.95); /* 半透明背景 */
-            backdrop-filter: blur(10px);
+            position: fixed; bottom: 0; left: 0; width: 100%; height: var(--nav-height);
+            background: rgba(30, 31, 34, 0.95); backdrop-filter: blur(10px);
             border-top: 1px solid var(--divider); 
             display: flex; justify-content: space-around; 
             padding: 10px 10px 25px 10px; z-index: 100;
         }
-        
         .nav-btn { 
             border: none; background: transparent; 
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: var(--text-sub); 
-            font-size: 11px; font-weight: 500;
-            flex: 1; /* 均分寬度 */
-            border-radius: 12px; /* 圓角按鈕 */
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            margin: 0 5px; /* 按鈕間距 */
+            color: var(--text-sub); font-size: 11px; font-weight: 500;
+            flex: 1; border-radius: 12px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            margin: 0 5px;
         }
-        
-        /* 選中狀態：背景亮起 */
-        .nav-btn.active { 
-            background-color: var(--bg-active); /* 深灰色塊背景 */
-            color: var(--text-main); /* 文字變白 */
-            transform: translateY(-2px); /* 微微上浮 */
-        }
-        
+        .nav-btn.active { background-color: var(--bg-active); color: var(--text-main); transform: translateY(-2px); }
         .nav-icon { font-size: 22px; margin-bottom: 4px; }
 
-        /* --- 功能性 CSS --- */
         .view-section, .sub-view { display: none; }
         .view-section.active, .sub-view.active { display: block !important; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -256,7 +233,6 @@
             transition: opacity 0.5s;
         }
         
-        /* Checkbox 優化 */
         .check-item { display: flex; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--divider); }
         .check-item input { transform: scale(1.4); margin-right: 15px; accent-color: var(--accent); }
         .check-item span { font-size: 16px; }
@@ -291,15 +267,82 @@
             <div id="sub-day1" class="sub-view active">
                 <div class="card">
                     <h2>✈️ 5/17 (日)</h2>
-                    <div class="item-row"><div class="time-badge">15:20</div><div class="item-content"><a href="https://www.google.com/maps/search/?api=1&query=成田國際機場" class="item-title-link" target="_blank">抵達成田機場</a><span class="item-desc">入境、拿行李</span></div></div>
-                    <div class="item-row"><div class="time-badge">18:00</div><div class="item-content"><a href="https://www.google.com/maps/search/?api=1&query=上野車站" class="item-title-link" target="_blank">Check-in 上野飯店</a><span class="item-desc">Skyliner 直達</span></div></div>
+                    <div class="item-row">
+                        <div class="time-badge">15:20</div>
+                        <div class="item-content">
+                            <a href="https://www.google.com/maps/search/?api=1&query=成田國際機場" class="item-title-link" target="_blank">抵達成田機場</a>
+                            <span class="editable-desc" onclick="editDesc(this, 'd1_arr')">入境、拿行李</span>
+                        </div>
+                    </div>
+                    <div class="item-row">
+                        <div class="time-badge">18:00</div>
+                        <div class="item-content">
+                            <a href="https://www.google.com/maps/search/?api=1&query=上野車站" class="item-title-link" target="_blank">Check-in 上野飯店</a>
+                            <span class="editable-desc" onclick="editDesc(this, 'd1_htl')">Skyliner 直達</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div id="sub-day2" class="sub-view"><div class="card"><h2>🍃 5/18 (一)</h2><div class="item-row"><div class="time-badge">10:00</div><div class="item-content"><a href="https://www.google.com/maps/search/?api=1&query=三鷹之森吉卜力美術館" class="item-title-link" target="_blank">吉卜力美術館</a><span class="item-desc">⚠️ 需帶護照</span></div></div></div></div>
-            <div id="sub-day3" class="sub-view"><div class="card"><h2>🏙️ 5/19 (二)</h2><div class="item-row"><div class="time-badge">全天</div><div class="item-content"><span class="item-title-link" style="border:none">市區探索 (自由)</span><span class="item-desc">澀谷 / 新宿</span></div></div></div></div>
-            <div id="sub-day4" class="sub-view"><div class="card"><h2>🌊 5/20 (三)</h2><div class="item-row"><div class="time-badge">09:00</div><div class="item-content"><a href="https://www.google.com/maps/search/?api=1&query=鎌倉高校前駅" class="item-title-link" target="_blank">鎌倉高校前</a><span class="item-desc">灌籃高手平交道</span></div></div></div></div>
-            <div id="sub-day5" class="sub-view"><div class="card"><h2>🛍️ 5/21 (四)</h2><div class="item-row"><div class="time-badge">全天</div><div class="item-content"><span class="item-title-link" style="border:none">最後採買</span><span class="item-desc">淺草 / 晴空塔</span></div></div></div></div>
-            <div id="sub-day6" class="sub-view"><div class="card"><h2>✈️ 5/22 (五)</h2><div class="item-row"><div class="time-badge">13:30</div><div class="item-content"><a href="https://www.google.com/maps/search/?api=1&query=上野車站" class="item-title-link" target="_blank">出發去機場</a><span class="item-desc">搭乘 Skyliner</span></div></div></div></div>
+            <div id="sub-day2" class="sub-view">
+                <div class="card">
+                    <h2>🍃 5/18 (一)</h2>
+                    <div class="item-row">
+                        <div class="time-badge">10:00</div>
+                        <div class="item-content">
+                            <a href="https://www.google.com/maps/search/?api=1&query=三鷹之森吉卜力美術館" class="item-title-link" target="_blank">吉卜力美術館</a>
+                            <span class="editable-desc" onclick="editDesc(this, 'd2_ghibli')">⚠️ 需帶護照</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="sub-day3" class="sub-view">
+                <div class="card">
+                    <h2>🏙️ 5/19 (二)</h2>
+                    <div class="item-row">
+                        <div class="time-badge">全天</div>
+                        <div class="item-content">
+                            <span class="item-title-link" style="border:none">市區探索 (自由)</span>
+                            <span class="editable-desc" onclick="editDesc(this, 'd3_free')">澀谷 / 新宿</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="sub-day4" class="sub-view">
+                <div class="card">
+                    <h2>🌊 5/20 (三)</h2>
+                    <div class="item-row">
+                        <div class="time-badge">09:00</div>
+                        <div class="item-content">
+                            <a href="https://www.google.com/maps/search/?api=1&query=鎌倉高校前駅" class="item-title-link" target="_blank">鎌倉高校前</a>
+                            <span class="editable-desc" onclick="editDesc(this, 'd4_kama')">灌籃高手平交道</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="sub-day5" class="sub-view">
+                <div class="card">
+                    <h2>🛍️ 5/21 (四)</h2>
+                    <div class="item-row">
+                        <div class="time-badge">全天</div>
+                        <div class="item-content">
+                            <span class="item-title-link" style="border:none">最後採買</span>
+                            <span class="editable-desc" onclick="editDesc(this, 'd5_shop')">淺草 / 晴空塔</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="sub-day6" class="sub-view">
+                <div class="card">
+                    <h2>✈️ 5/22 (五)</h2>
+                    <div class="item-row">
+                        <div class="time-badge">13:30</div>
+                        <div class="item-content">
+                            <a href="https://www.google.com/maps/search/?api=1&query=上野車站" class="item-title-link" target="_blank">出發去機場</a>
+                            <span class="editable-desc" onclick="editDesc(this, 'd6_bye')">搭乘 Skyliner</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div id="view-money" class="view-section">
@@ -366,13 +409,13 @@
     </nav>
 
     <script>
-        // --- 變數 ---
-        let db, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc;
+        // --- 變數與初始化 ---
+        let db, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, setDoc;
         let splitLogs = []; 
         let personalLogs = JSON.parse(localStorage.getItem('personalLogs')) || [];
         let currentCat = { split: '其他', personal: '其他' };
 
-        // --- 強制解鎖 ---
+        // 強制解鎖
         setTimeout(() => {
             const mask = document.getElementById('loading-mask');
             if(mask && mask.style.display !== 'none') {
@@ -381,12 +424,13 @@
             }
         }, 3000);
 
-        // --- Firebase ---
+        // --- Firebase 監聽 ---
         window.addEventListener('firebase-ready', () => {
             db = window.db; collection = window.collection; addDoc = window.addDoc;
             onSnapshot = window.onSnapshot; query = window.query; orderBy = window.orderBy;
-            deleteDoc = window.deleteDoc; doc = window.doc;
+            deleteDoc = window.deleteDoc; doc = window.doc; setDoc = window.setDoc;
 
+            // 1. 監聽記帳
             try {
                 const q = query(collection(db, "splitLogs"), orderBy("timestamp", "desc"));
                 onSnapshot(q, (snapshot) => {
@@ -395,9 +439,49 @@
                     renderSplitUI();
                     const mask = document.getElementById('loading-mask');
                     if(mask) { mask.style.opacity = 0; setTimeout(()=>mask.style.display='none',500); }
-                }, (err) => console.error(err));
-            } catch (err) { console.error(err); }
+                });
+            } catch (err) { console.error("Firebase Bill Error:", err); }
+
+            // 2. ✨ 監聽行程文字修改 (新增功能)
+            try {
+                // 監聽 'itinerary_edits' 集合
+                onSnapshot(collection(db, "itinerary_edits"), (snapshot) => {
+                    snapshot.forEach((doc) => {
+                        const id = doc.id;
+                        const data = doc.data();
+                        // 找到對應的 DOM 元素並更新文字
+                        const el = document.querySelector(`.editable-desc[onclick*="'${id}'"]`);
+                        if (el && data.text) {
+                            el.innerText = data.text;
+                            // 閃爍一下提醒更新
+                            el.style.color = 'var(--accent)';
+                            setTimeout(() => el.style.color = '', 500);
+                        }
+                    });
+                });
+            } catch (err) { console.error("Firebase Itinerary Error:", err); }
         });
+
+        // --- ✨ 行程編輯功能 (新增) ---
+        function editDesc(el, id) {
+            const oldText = el.innerText;
+            const newText = prompt("修改行程備註：", oldText);
+            
+            if (newText !== null && newText !== oldText) {
+                // 1. 先本機更新 (不用等網路)
+                el.innerText = newText;
+                
+                // 2. 上傳雲端 (如果 db 有連線)
+                if (window.db && window.setDoc && window.doc) {
+                    setDoc(doc(window.db, "itinerary_edits", id), {
+                        text: newText,
+                        updatedAt: new Date()
+                    }, { merge: true }).catch(err => alert("上傳失敗，請檢查網路"));
+                } else {
+                    alert("目前離線，無法同步給朋友 (但本機已暫存)");
+                }
+            }
+        }
 
         // --- UI ---
         document.addEventListener('DOMContentLoaded', () => {
