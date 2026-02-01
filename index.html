@@ -49,13 +49,14 @@
     </script>
 
     <style>
+        /* CSS 變數 */
         :root {
             --bg-base: #121212;
             --bg-card: #1E1E1E;
             --bg-active: #333333;
             --text-main: #FFFFFF;
             --text-sub: #A0A0A0;
-            --accent: #FFFFFF; /* 改成白色 */
+            --accent: #FFFFFF; /* 改為白色 */
             --green: #23A559;
             --red: #FF453A;
             --divider: #2C2C2C;
@@ -69,37 +70,35 @@
             background-color: var(--bg-base);
             color: var(--text-main); 
             margin: 0; padding: 0; 
-            padding-bottom: calc(var(--nav-height) + 20px);
+            padding-bottom: calc(var(--nav-height) + 40px);
             -webkit-user-select: none;
             overflow-x: hidden;
         }
 
-        /* --- Header --- */
+        /* --- Header 優化 --- */
         header { 
-            background-color: var(--bg-base); /* 與背景融合 */
-            padding: 50px 20px 10px; 
+            background-color: var(--bg-base); 
+            padding: 50px 20px 5px; /* 減少下方 padding */
             position: sticky; top: 0; z-index: 50;
         }
         .info-bar { display: flex; justify-content: space-between; align-items: flex-start; }
         
         .time-box h1 { 
-            margin: 0; font-size: 32px; /* 字體加大 */
-            font-weight: 700; letter-spacing: 1px; line-height: 1.1;
+            margin: 0; font-size: 34px; /* 日期加大 */
+            font-weight: 700; letter-spacing: 1px; line-height: 1;
+            margin-bottom: 6px; /* 縮小與倒數的距離 */
         }
         
         .countdown-badge {
             display: inline-block;
-            margin-top: 8px;
-            font-size: 14px; font-weight: 500;
+            font-size: 15px; font-weight: 600; /* 倒數加大 */
             color: var(--text-sub);
-            background: rgba(255,255,255,0.1);
-            padding: 4px 10px;
-            border-radius: 20px;
+            padding: 0; /* 移除背景讓它更乾淨，靠近日期待 */
         }
 
         .weather-box { text-align: right; }
-        .weather-temp { font-size: 24px; font-weight: bold; display: block; }
-        .weather-icon { font-size: 20px; color: var(--text-sub); }
+        .weather-temp { font-size: 36px; font-weight: bold; display: block; line-height: 1; } /* 溫度加大 */
+        .weather-icon { font-size: 24px; color: var(--text-sub); display: block; margin-bottom: 4px; }
         
         /* --- Scroll Menu --- */
         .scroll-menu { 
@@ -135,9 +134,9 @@
             display: flex; align-items: center; color: var(--text-main);
             font-weight: 700;
         }
-        h2 i { margin-right: 8px; font-size: 22px; } /* 圖示樣式 */
+        h2 i { margin-right: 8px; font-size: 22px; }
         
-        /* --- 行程時間軸 (對齊修正版) --- */
+        /* --- 行程時間軸 --- */
         .item-row { 
             display: flex; flex-direction: column;
             margin-bottom: 25px; padding-left: 20px; 
@@ -148,16 +147,16 @@
         
         /* 圓點對齊修正 */
         .item-row::before {
-            content: ''; position: absolute; left: -6px; top: 6px; /* 微調 top 以對齊時間文字 */
+            content: ''; position: absolute; left: -6px; top: 7px; /* 精準對齊 */
             width: 10px; height: 10px; border-radius: 50%;
             background: var(--accent);
-            box-shadow: 0 0 8px rgba(255,255,255,0.4);
+            box-shadow: 0 0 8px rgba(255,255,255,0.3);
         }
 
         .time-badge { 
             color: var(--accent); font-size: 15px; font-weight: 700; 
-            margin-bottom: 6px; letter-spacing: 0.5px;
-            line-height: 1; /* 確保高度一致 */
+            margin-bottom: 4px; letter-spacing: 0.5px;
+            line-height: 1.2;
         }
         
         .item-content { flex: 1; display: flex; flex-direction: column; }
@@ -166,23 +165,38 @@
             font-weight: 700; font-size: 17px; display: block; 
             color: var(--text-main); text-decoration: none; margin-bottom: 6px; 
         }
+        .item-title-link:active { opacity: 0.7; }
         
-        /* 📝 可編輯描述區 (多行樣式) */
+        /* 描述樣式 (列點式) */
         .editable-desc {
             font-size: 14px; color: var(--text-sub); line-height: 1.6;
-            white-space: pre-wrap; /* 允許換行 */
+            white-space: pre-wrap;
             cursor: pointer;
-            padding: 8px 12px;
-            background: rgba(255,255,255,0.03);
-            border-radius: 8px;
-            border-left: 2px solid transparent;
+            padding: 4px 0;
+            border-bottom: 1px dashed transparent;
             transition: all 0.2s;
         }
-        .editable-desc:active { background: rgba(255,255,255,0.08); }
+        .editable-desc:active { border-bottom-color: var(--text-sub); }
         .editable-desc:empty::before { content: "點擊新增備註..."; opacity: 0.5; }
+
+        /* --- 懸浮新增按鈕 (FAB) --- */
+        .fab-btn {
+            position: fixed; bottom: 110px; right: 20px;
+            width: 56px; height: 56px;
+            background: var(--text-main); color: var(--bg-base);
+            border-radius: 16px; /* 正方形導圓角 */
+            display: none; /* 預設隱藏，只有行程頁顯示 */
+            justify-content: center; align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            z-index: 90; cursor: pointer;
+            font-size: 28px; border: none;
+            transition: transform 0.2s;
+        }
+        .fab-btn:active { transform: scale(0.95); }
 
         /* --- 記帳樣式 --- */
         .bill-input { width: 100%; padding: 16px; border: none; background: #2C2C2C; color: white; border-radius: 16px; font-size: 20px; margin-bottom: 12px; text-align: center; font-weight: bold; }
+        .bill-input-group label { display: block; font-size: 13px; color: var(--text-sub); margin-bottom: 6px; }
         
         .category-group { display: flex; gap: 10px; margin-bottom: 25px; overflow-x: auto; padding-bottom: 5px; justify-content: center; }
         .cat-btn { 
@@ -200,38 +214,29 @@
         }
         .action-btn span { font-size: 11px; opacity: 0.7; font-weight: normal; }
         .btn-tukai { background: var(--green); }
-        .btn-yuan { background: #FF9F0A; color: black; } /* 改用更亮眼的橘色 */
+        .btn-yuan { background: #FF9F0A; color: black; }
         
         .bill-list { list-style: none; padding: 0; margin: 0; }
-        .bill-item { 
-            display: flex; align-items: center; justify-content: space-between; 
-            padding: 18px 0; border-bottom: 1px solid var(--divider); 
-        }
+        .bill-item { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid var(--divider); }
         .bill-left { display: flex; align-items: center; flex: 1; overflow: hidden; gap: 12px; }
-        .bill-icon { 
-            width: 36px; height: 36px; border-radius: 50%; 
-            background: #2C2C2C; color: var(--text-main);
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
-        }
+        .bill-icon { width: 36px; height: 36px; border-radius: 50%; background: #2C2C2C; color: var(--text-main); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .bill-info-box { display: flex; flex-direction: column; overflow: hidden; }
         .bill-desc-text { font-size: 16px; color: var(--text-main); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .bill-meta { font-size: 12px; color: #666; margin-top: 2px; }
         .bill-amount { font-weight: 700; font-size: 18px; color: var(--text-main); white-space: nowrap; }
         .btn-del { background: transparent; color: #666; border: none; padding: 8px; font-size: 16px; }
 
-        /* 統計與結算 */
-        .summary-box { 
-            background: #2C2C2C; padding: 20px; border-radius: 20px; 
-            margin-bottom: 40px; text-align: center; 
-        }
+        .stats-box { background: #2B2D31; padding: 15px; border-radius: 12px; margin-top: 15px; margin-bottom: 30px; }
+        .summary-box { background: #2B2D31; padding: 15px; border-radius: 12px; margin-bottom: 30px; text-align: center; }
         .summary-title { font-size: 13px; color: var(--text-sub); margin-bottom: 5px; }
         .summary-big { font-size: 28px; font-weight: 800; color: var(--text-main); }
+        .stats-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; color: var(--text-sub); }
+        .stats-row span:last-child { color: var(--text-main); font-weight: bold; }
 
-        /* --- 底部導航 (黑白風格) --- */
+        /* --- 底部導航 --- */
         .bottom-nav { 
             position: fixed; bottom: 0; left: 0; width: 100%; height: var(--nav-height);
-            background: rgba(18, 18, 18, 0.9); backdrop-filter: blur(20px);
+            background: rgba(18, 18, 18, 0.95); backdrop-filter: blur(20px);
             border-top: 1px solid rgba(255,255,255,0.1);
             display: flex; justify-content: space-around; 
             padding: 10px 10px 25px 10px; z-index: 100;
@@ -239,13 +244,10 @@
         .nav-btn { 
             border: none; background: transparent; 
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: #555; /* 未選中顏色 */
-            font-size: 10px; font-weight: 500;
+            color: #555; font-size: 10px; font-weight: 500;
             flex: 1; border-radius: 12px; transition: 0.2s;
         }
         .nav-btn i { font-size: 24px; margin-bottom: 4px; transition: 0.2s; }
-        
-        /* 選中狀態：圖示變實心，背景亮起 */
         .nav-btn.active { color: #FFFFFF; }
         .nav-btn.active i { transform: scale(1.1); }
 
@@ -261,28 +263,42 @@
             transition: opacity 0.5s;
         }
 
-        /* 編輯視窗 (Modal) */
-        #edit-modal {
+        /* 編輯 & 新增視窗 (Modal) */
+        .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 200;
+            background: rgba(0,0,0,0.85); z-index: 200;
             justify-content: center; align-items: center;
         }
         .modal-content {
             background: #1E1E1E; width: 85%; max-width: 400px;
-            padding: 20px; border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            padding: 25px; border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
         }
+        .modal-title { margin: 0 0 20px 0; color: white; font-size: 18px; text-align: center; }
         .modal-textarea {
-            width: 100%; height: 150px; background: #2C2C2C; color: white;
+            width: 100%; height: 120px; background: #2C2C2C; color: white;
             border: none; padding: 15px; border-radius: 12px; font-size: 16px;
-            resize: none; font-family: inherit; line-height: 1.5;
+            resize: none; font-family: inherit; line-height: 1.5; margin-bottom: 15px;
         }
-        .modal-btns { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
+        /* 新增行程表單樣式 */
+        .modal-input {
+            width: 100%; padding: 12px; margin-bottom: 12px;
+            background: #2C2C2C; color: white; border: none; border-radius: 12px; font-size: 16px;
+        }
+        .modal-label { display: block; color: var(--text-sub); font-size: 12px; margin-bottom: 5px; }
+        
+        .modal-btns { display: flex; gap: 10px; margin-top: 10px; }
         .modal-btn {
-            padding: 10px 20px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer;
+            flex: 1; padding: 12px; border-radius: 12px; border: none; 
+            font-weight: bold; cursor: pointer; font-size: 15px;
         }
-        .btn-cancel { background: transparent; color: #888; }
+        .btn-cancel { background: #333; color: #BBB; }
         .btn-save { background: white; color: black; }
+        
+        .check-item { display: flex; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--divider); }
+        .check-item input { transform: scale(1.4); margin-right: 15px; accent-color: var(--accent); }
+        .check-item span { font-size: 16px; }
+        .check-item.checked span { text-decoration: line-through; color: #5C5E66; }
     </style>
 </head>
 <body>
@@ -292,9 +308,9 @@
         <div style="font-size: 12px; opacity: 0.5;">載入中...</div>
     </div>
 
-    <div id="edit-modal">
+    <div id="edit-modal" class="modal-overlay">
         <div class="modal-content">
-            <h3 style="margin-top:0; color:white;">編輯筆記</h3>
+            <h3 class="modal-title">編輯筆記</h3>
             <textarea id="modal-input" class="modal-textarea"></textarea>
             <div class="modal-btns">
                 <button class="modal-btn btn-cancel" onclick="closeEdit()">取消</button>
@@ -303,14 +319,47 @@
         </div>
     </div>
 
+    <div id="add-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 class="modal-title">新增行程</h3>
+            
+            <span class="modal-label">日期</span>
+            <select id="add-date" class="modal-input">
+                <option value="sub-day1">5/17 (日)</option>
+                <option value="sub-day2">5/18 (一)</option>
+                <option value="sub-day3">5/19 (二)</option>
+                <option value="sub-day4">5/20 (三)</option>
+                <option value="sub-day5">5/21 (四)</option>
+                <option value="sub-day6">5/22 (五)</option>
+            </select>
+
+            <span class="modal-label">時間 (如 14:00)</span>
+            <input type="text" id="add-time" class="modal-input" placeholder="時間">
+
+            <span class="modal-label">活動名稱</span>
+            <input type="text" id="add-title" class="modal-input" placeholder="要去哪裡？">
+
+            <span class="modal-label">Google Maps 連結 (選填)</span>
+            <input type="text" id="add-link" class="modal-input" placeholder="貼上網址">
+
+            <span class="modal-label">備註內容</span>
+            <textarea id="add-desc" class="modal-input" style="height:80px" placeholder="• 記得買票..."></textarea>
+
+            <div class="modal-btns">
+                <button class="modal-btn btn-cancel" onclick="closeAdd()">取消</button>
+                <button class="modal-btn btn-save" onclick="saveNewEvent()">新增</button>
+            </div>
+        </div>
+    </div>
+
     <header>
         <div class="info-bar">
             <div class="time-box">
+                <span class="weather-icon"><i class="ri-sun-cloudy-fill"></i></span>
                 <h1 id="date-display">--/--</h1>
                 <div id="countdown" class="countdown-badge">計算中...</div>
             </div>
             <div class="weather-box">
-                <span class="weather-icon"><i class="ri-sun-cloudy-line"></i></span>
                 <span class="weather-temp" id="weather">--°</span>
             </div>
         </div>
@@ -319,6 +368,7 @@
     <div class="scroll-menu" id="topMenu"></div>
 
     <div class="content-area">
+        
         <div id="view-schedule" class="view-section active">
             <div id="sub-day1" class="sub-view active">
                 <div class="card">
@@ -334,23 +384,86 @@
                         <div class="time-badge">18:00</div>
                         <div class="item-content">
                             <a href="https://www.google.com/maps/search/?api=1&query=上野車站" class="item-title-link" target="_blank">Check-in 上野飯店</a>
-                            <div class="editable-desc" onclick="openEdit(this, 'd1_htl')">搭乘 Skyliner 直達上野</div>
+                            <div class="editable-desc" onclick="openEdit(this, 'd1_htl')">• 搭乘 Skyliner 直達上野<br>• 先放行李</div>
                         </div>
                     </div>
+                    <div id="extra-day1"></div>
                 </div>
             </div>
-            <div id="sub-day2" class="sub-view"><div class="card"><h2><i class="ri-leaf-fill"></i> 5/18 (一)</h2><div class="item-row"><div class="time-badge">10:00</div><div class="item-content"><a href="https://www.google.com/maps/search/?api=1&query=三鷹之森吉卜力美術館" class="item-title-link" target="_blank">吉卜力美術館</a><div class="editable-desc" onclick="openEdit(this, 'd2_ghi')">⚠️ 務必攜帶護照</div></div></div></div></div>
-            <div id="sub-day3" class="sub-view"><div class="card"><h2><i class="ri-building-2-fill"></i> 5/19 (二)</h2><div class="item-row"><div class="time-badge">全天</div><div class="item-content"><span class="item-title-link">市區探索</span><div class="editable-desc" onclick="openEdit(this, 'd3_free')">澀谷 Sky / 新宿逛街</div></div></div></div></div>
-            <div id="sub-day4" class="sub-view"><div class="card"><h2><i class="ri-sailboat-fill"></i> 5/20 (三)</h2><div class="item-row"><div class="time-badge">09:00</div><div class="item-content"><a href="https://www.google.com/maps/search/?api=1&query=鎌倉高校前駅" class="item-title-link" target="_blank">鎌倉高校前</a><div class="editable-desc" onclick="openEdit(this, 'd4_kama')">灌籃高手平交道拍照</div></div></div></div></div>
-            <div id="sub-day5" class="sub-view"><div class="card"><h2><i class="ri-shopping-bag-3-fill"></i> 5/21 (四)</h2><div class="item-row"><div class="time-badge">全天</div><div class="item-content"><span class="item-title-link">最後採買</span><div class="editable-desc" onclick="openEdit(this, 'd5_shop')">淺草雷門 / 晴空塔</div></div></div></div></div>
-            <div id="sub-day6" class="sub-view"><div class="card"><h2><i class="ri-flight-takeoff-fill"></i> 5/22 (五)</h2><div class="item-row"><div class="time-badge">13:30</div><div class="item-content"><a href="https://www.google.com/maps/search/?api=1&query=上野車站" class="item-title-link" target="_blank">出發去機場</a><div class="editable-desc" onclick="openEdit(this, 'd6_bye')">搭乘 Skyliner</div></div></div></div></div>
+            <div id="sub-day2" class="sub-view">
+                <div class="card">
+                    <h2><i class="ri-leaf-fill"></i> 5/18 (一)</h2>
+                    <div class="item-row">
+                        <div class="time-badge">10:00</div>
+                        <div class="item-content">
+                            <a href="https://www.google.com/maps/search/?api=1&query=三鷹之森吉卜力美術館" class="item-title-link" target="_blank">吉卜力美術館</a>
+                            <div class="editable-desc" onclick="openEdit(this, 'd2_ghi')">• ⚠️ 務必攜帶護照<br>• 準時入場</div>
+                        </div>
+                    </div>
+                    <div id="extra-day2"></div>
+                </div>
+            </div>
+            <div id="sub-day3" class="sub-view">
+                <div class="card">
+                    <h2><i class="ri-building-2-fill"></i> 5/19 (二)</h2>
+                    <div class="item-row">
+                        <div class="time-badge">全天</div>
+                        <div class="item-content">
+                            <span class="item-title-link">市區探索</span>
+                            <div class="editable-desc" onclick="openEdit(this, 'd3_free')">• 澀谷 Sky 觀景台<br>• 新宿逛街</div>
+                        </div>
+                    </div>
+                    <div id="extra-day3"></div>
+                </div>
+            </div>
+            <div id="sub-day4" class="sub-view">
+                <div class="card">
+                    <h2><i class="ri-sailboat-fill"></i> 5/20 (三)</h2>
+                    <div class="item-row">
+                        <div class="time-badge">09:00</div>
+                        <div class="item-content">
+                            <a href="https://www.google.com/maps/search/?api=1&query=鎌倉高校前駅" class="item-title-link" target="_blank">鎌倉高校前</a>
+                            <div class="editable-desc" onclick="openEdit(this, 'd4_kama')">• 灌籃高手平交道拍照<br>• 吃吻仔魚丼</div>
+                        </div>
+                    </div>
+                    <div id="extra-day4"></div>
+                </div>
+            </div>
+            <div id="sub-day5" class="sub-view">
+                <div class="card">
+                    <h2><i class="ri-shopping-bag-3-fill"></i> 5/21 (四)</h2>
+                    <div class="item-row">
+                        <div class="time-badge">全天</div>
+                        <div class="item-content">
+                            <span class="item-title-link">最後採買</span>
+                            <div class="editable-desc" onclick="openEdit(this, 'd5_shop')">• 淺草雷門<br>• 晴空塔<br>• 藥妝補貨</div>
+                        </div>
+                    </div>
+                    <div id="extra-day5"></div>
+                </div>
+            </div>
+            <div id="sub-day6" class="sub-view">
+                <div class="card">
+                    <h2><i class="ri-flight-takeoff-fill"></i> 5/22 (五)</h2>
+                    <div class="item-row">
+                        <div class="time-badge">13:30</div>
+                        <div class="item-content">
+                            <a href="https://www.google.com/maps/search/?api=1&query=上野車站" class="item-title-link" target="_blank">出發去機場</a>
+                            <div class="editable-desc" onclick="openEdit(this, 'd6_bye')">• 搭乘 Skyliner<br>• 預留 2 小時 Check-in</div>
+                        </div>
+                    </div>
+                    <div id="extra-day6"></div>
+                </div>
+            </div>
+
+            <button class="fab-btn" id="fab-add" onclick="openAdd()"><i class="ri-add-line"></i></button>
         </div>
 
         <div id="view-money" class="view-section">
             <div id="sub-split" class="sub-view active">
                 <div class="card">
                     <h2><i class="ri-group-fill"></i> 公款分帳</h2>
-                    <input type="text" id="splitDesc" class="bill-input" placeholder="項目名稱 (如：燒肉)">
+                    <input type="text" id="splitDesc" class="bill-input" placeholder="項目名稱">
                     <input type="number" id="splitAmount" class="bill-input" placeholder="¥ 金額">
                     
                     <div class="category-group" id="splitCats">
@@ -421,7 +534,7 @@
         let splitLogs = []; 
         let personalLogs = JSON.parse(localStorage.getItem('personalLogs')) || [];
         let currentCat = { split: '其他', personal: '其他' };
-        let currentEditId = null; // 當前正在編輯的行程 ID
+        let currentEditId = null;
 
         // 強制解鎖
         setTimeout(() => {
@@ -439,7 +552,7 @@
             deleteDoc = window.deleteDoc; doc = window.doc; setDoc = window.setDoc;
 
             try {
-                // 記帳監聽
+                // 1. 記帳
                 const q = query(collection(db, "splitLogs"), orderBy("timestamp", "desc"));
                 onSnapshot(q, (snapshot) => {
                     splitLogs = [];
@@ -449,13 +562,36 @@
                     if(mask) { mask.style.opacity = 0; setTimeout(()=>mask.style.display='none',500); }
                 });
 
-                // 行程文字監聽
+                // 2. 行程文字修改
                 onSnapshot(collection(db, "itinerary_edits"), (snapshot) => {
                     snapshot.forEach((doc) => {
                         const el = document.querySelector(`.editable-desc[onclick*="'${doc.id}'"]`);
-                        if (el && doc.data().text) {
-                            // 將純文字轉為 HTML (<br>) 顯示
-                            el.innerHTML = doc.data().text.replace(/\n/g, '<br>');
+                        if (el && doc.data().text) el.innerHTML = doc.data().text.replace(/\n/g, '<br>');
+                    });
+                });
+
+                // 3. ✨ 監聽新增的行程 (New Events)
+                const qEvents = query(collection(db, "custom_events"), orderBy("time", "asc"));
+                onSnapshot(qEvents, (snapshot) => {
+                    // 先清空所有額外區塊，避免重複
+                    document.querySelectorAll('[id^="extra-day"]').forEach(el => el.innerHTML = '');
+                    
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const container = document.getElementById(`extra-${data.dayId}`);
+                        if (container) {
+                            const linkHtml = data.link ? `<a href="${data.link}" class="item-title-link" target="_blank">${data.title}</a>` : `<span class="item-title-link">${data.title}</span>`;
+                            const descHtml = data.desc ? data.desc.replace(/\n/g, '<br>') : '';
+                            
+                            const html = `
+                            <div class="item-row">
+                                <div class="time-badge">${data.time}</div>
+                                <div class="item-content">
+                                    ${linkHtml}
+                                    <div class="editable-desc" onclick="openEdit(this, '${doc.id}')">${descHtml}</div>
+                                </div>
+                            </div>`;
+                            container.insertAdjacentHTML('beforeend', html);
                         }
                     });
                 });
@@ -470,16 +606,13 @@
             switchMainTab('schedule');
         });
 
-        // --- 倒數計時邏輯 ---
+        // --- 倒數計時 ---
         function updateClock() {
             const now = new Date();
             const tripDate = new Date('2026-05-17T00:00:00');
-            
-            // 顯示日期
             const dateStr = now.toLocaleDateString('zh-TW', {month:'numeric', day:'numeric', weekday:'short'});
-            document.getElementById('date-display').innerText = dateStr;
+            document.getElementById('date-display').innerText = dateStr.replace('週', ''); // 移除週
 
-            // 計算倒數
             const diffTime = tripDate - now;
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             
@@ -488,59 +621,81 @@
                 badge.innerText = `🇯🇵 出國倒數 ${diffDays} 天`;
                 badge.style.color = '#A0A0A0';
             } else if (diffDays === 0 || diffDays > -6) {
-                badge.innerText = `🚀 東京第 ${Math.abs(diffDays) + 1} 天`;
+                badge.innerText = `🚀 東京第一天！`;
                 badge.style.color = '#FFFFFF';
-                badge.style.background = '#23A559';
             } else {
                 badge.innerText = "美好的回憶";
             }
         }
 
-        // --- 多行編輯器 ---
+        // --- 編輯功能 ---
         function openEdit(el, id) {
             currentEditId = id;
             const modal = document.getElementById('edit-modal');
             const input = document.getElementById('modal-input');
-            
-            // 把 HTML <br> 轉回換行符號 \n 放入編輯框
-            let text = el.innerText.replace(/• /g, ''); // 編輯時移除圓點，方便修改
+            let text = el.innerText.replace(/• /g, ''); 
             input.value = text;
-            modal.style.display = 'flex';
-            input.focus();
+            modal.style.display = 'flex'; input.focus();
         }
-
-        function closeEdit() {
-            document.getElementById('edit-modal').style.display = 'none';
-        }
-
+        function closeEdit() { document.getElementById('edit-modal').style.display = 'none'; }
+        
         function saveEdit() {
             const input = document.getElementById('modal-input');
             const rawText = input.value.trim();
-            
-            // 自動加圓點處理
             const lines = rawText.split('\n');
             const formattedLines = lines.map(line => {
                 line = line.trim();
                 if(!line) return '';
-                if(line.startsWith('•')) return line; // 已經有點了
-                return '• ' + line; // 加點
+                if(line.startsWith('•')) return line;
+                return '• ' + line;
             }).filter(l => l !== '');
-            
-            const finalText = formattedLines.join('\n'); // 儲存時用 \n 分隔
+            const finalText = formattedLines.join('\n');
 
-            // 上傳
             if (window.db && window.setDoc) {
-                setDoc(doc(window.db, "itinerary_edits", currentEditId), {
-                    text: finalText,
-                    updatedAt: new Date()
-                }, { merge: true });
-            } else {
-                // 離線預覽
-                const el = document.querySelector(`.editable-desc[onclick*="'${currentEditId}'"]`);
-                if(el) el.innerHTML = finalText.replace(/\n/g, '<br>');
-                alert("離線模式：已暫存，連線後請重試");
+                // 判斷是預設行程還是新增行程
+                const collectionName = currentEditId.startsWith('d') ? "itinerary_edits" : "custom_events";
+                // 如果是 custom_events，我們只更新 desc 欄位
+                if(collectionName === "custom_events") {
+                     setDoc(doc(window.db, "custom_events", currentEditId), { desc: finalText }, { merge: true });
+                } else {
+                     setDoc(doc(window.db, "itinerary_edits", currentEditId), { text: finalText }, { merge: true });
+                }
             }
             closeEdit();
+        }
+
+        // --- ✨ 新增行程功能 ---
+        function openAdd() { document.getElementById('add-modal').style.display = 'flex'; }
+        function closeAdd() { document.getElementById('add-modal').style.display = 'none'; }
+        
+        async function saveNewEvent() {
+            const dayId = document.getElementById('add-date').value;
+            const time = document.getElementById('add-time').value || '待定';
+            const title = document.getElementById('add-title').value;
+            const link = document.getElementById('add-link').value;
+            let desc = document.getElementById('add-desc').value.trim();
+
+            if(!title) return alert("請輸入活動名稱");
+
+            // 自動加點
+            if(desc) {
+                const lines = desc.split('\n');
+                desc = lines.map(l => l.trim().startsWith('•') ? l.trim() : '• ' + l.trim()).join('\n');
+            }
+
+            if(window.db && window.addDoc) {
+                try {
+                    await addDoc(collection(window.db, "custom_events"), {
+                        dayId, time, title, link, desc,
+                        createdAt: new Date()
+                    });
+                    closeAdd();
+                    // 清空表單
+                    document.getElementById('add-title').value = '';
+                    document.getElementById('add-link').value = '';
+                    document.getElementById('add-desc').value = '';
+                } catch(e) { alert("新增失敗：" + e.message); }
+            } else { alert("離線無法新增"); }
         }
 
         // --- 頁面切換 ---
@@ -548,7 +703,6 @@
             const navBtns = document.querySelectorAll('.nav-btn');
             navBtns.forEach(btn => btn.classList.remove('active'));
             
-            // 換 icon 實心/空心
             navBtns[0].querySelector('i').className = tabName==='schedule' ? 'ri-map-2-fill' : 'ri-map-2-line';
             navBtns[1].querySelector('i').className = tabName==='money' ? 'ri-money-cny-circle-fill' : 'ri-money-cny-circle-line';
             navBtns[2].querySelector('i').className = tabName==='list' ? 'ri-suitcase-fill' : 'ri-suitcase-line';
@@ -560,10 +714,13 @@
             document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
             document.getElementById(tabName==='money'?'view-money':tabName==='list'?'view-list':'view-schedule').classList.add('active');
             
+            // FAB 只在行程頁顯示
+            document.getElementById('fab-add').style.display = tabName==='schedule' ? 'flex' : 'none';
+            
             renderTopMenu(tabName);
         }
 
-        // --- 其餘邏輯維持不變 (TopMenu, Split, Personal, Checklist) ---
+        // --- 其他邏輯保持不變 ---
         function renderTopMenu(tab) {
             const menu = document.getElementById('topMenu'); menu.innerHTML = '';
             let items = [];
@@ -598,7 +755,7 @@
         }
 
         async function addSplit(type) {
-            if(!db) return alert("連線中...");
+            if(!db) return alert("Firebase 未連線");
             const desc = document.getElementById('splitDesc').value;
             const amount = parseInt(document.getElementById('splitAmount').value);
             const cat = currentCat.split;
