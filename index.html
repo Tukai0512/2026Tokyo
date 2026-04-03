@@ -69,124 +69,82 @@
             overflow-x: hidden;
         }
 
-        /* --- Header (布局微調) --- */
+        /* --- Header --- */
         header { 
             padding: 50px 20px 5px; position: sticky; top: 0; z-index: 50;
             background: rgba(18, 18, 18, 0.95); backdrop-filter: blur(10px);
             border-bottom: 1px solid var(--divider);
             display: flex; justify-content: space-between; align-items: flex-start;
         }
-        
-        .header-left { display: flex; flex-direction: column; justify-content: center; }
+        .header-left { display: flex; flex-direction: column; }
         .time-box h1 { margin: 0; font-size: 32px; font-weight: 700; line-height: 1; margin-bottom: 6px; }
         .countdown-badge { font-size: 14px; font-weight: 600; color: var(--text-sub); }
-
         .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-        
-        /* 身分按鈕 (右上) */
-        .user-switch-btn {
-            background: var(--bg-active); border: 1px solid #444;
-            padding: 6px 12px; border-radius: 20px;
-            font-size: 13px; font-weight: bold; color: var(--text-main);
-            display: flex; align-items: center; gap: 6px;
-            cursor: pointer; transition: 0.2s;
-        }
-        .user-switch-btn:active { transform: scale(0.95); background: #444; }
-        
-        /* 點點顏色 (動態切換) */
-        .user-dot { width: 8px; height: 8px; border-radius: 50%; transition: background 0.3s; }
+        .user-switch-btn { background: var(--bg-active); border: 1px solid #444; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; color: var(--text-main); display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s; }
+        .user-dot { width: 8px; height: 8px; border-radius: 50%; }
         .dot-green { background: var(--green); }
         .dot-gold { background: var(--gold); }
-
-        /* 天氣與降雨 (同一行) */
         .weather-row { display: flex; align-items: center; gap: 8px; transform: translateY(-2px); }
         .weather-temp { font-size: 20px; font-weight: bold; }
-        .weather-rain { font-size: 13px; color: #4facfe; font-weight: 500; display: flex; align-items: center; gap: 2px; }
+        .weather-rain { font-size: 13px; color: #4facfe; display: flex; align-items: center; gap: 2px; }
 
-        /* --- Scroll Menu (行程日期) --- */
-        .scroll-menu { 
-            display: flex; overflow-x: auto; padding: 15px 15px 15px; 
-            background: var(--bg-base); scrollbar-width: none; 
-            position: sticky; top: 90px; z-index: 40;
-        }
+        /* --- Scroll Menu --- */
+        .scroll-menu { display: flex; overflow-x: auto; padding: 15px 15px 15px; background: var(--bg-base); scrollbar-width: none; position: sticky; top: 90px; z-index: 40; }
         .scroll-menu::-webkit-scrollbar { display: none; }
-        .chip {
-            background: var(--bg-card); color: var(--text-sub); 
-            padding: 10px 20px; border-radius: 30px;
-            font-size: 14px; font-weight: 600; margin-right: 10px; 
-            border: 1px solid var(--divider); white-space: nowrap; transition: 0.2s;
-        }
-        .chip.active { 
-            background: var(--text-main); color: var(--bg-base); 
-            border-color: var(--text-main); 
-            box-shadow: 0 4px 12px rgba(255,255,255,0.2);
-        }
+        .chip { background: var(--bg-card); color: var(--text-sub); padding: 10px 20px; border-radius: 30px; font-size: 14px; font-weight: 600; margin-right: 10px; border: 1px solid var(--divider); white-space: nowrap; transition: 0.2s; }
+        .chip.active { background: var(--text-main); color: var(--bg-base); border-color: var(--text-main); box-shadow: 0 4px 12px rgba(255,255,255,0.2); }
 
         /* --- Content Area --- */
         .content-area { padding: 0 15px; min-height: 70vh; }
-        
-        /* 卡片隱藏邏輯 (行程用) */
         .day-container { display: none; animation: fadeIn 0.3s; }
         .day-container.active { display: block; }
-
         .card { background: var(--bg-card); border-radius: 20px; padding: 24px 20px; margin-bottom: 20px; }
         h2 { font-size: 20px; margin: 0 0 20px 0; display: flex; align-items: center; color: var(--text-main); font-weight: 700; }
-        h2 i { margin-right: 8px; font-size: 22px; }
         
-        /* 行程內容 */
+        /* --- 行程項目與刪除功能 --- */
         .item-row { display: flex; flex-direction: column; margin-bottom: 25px; padding-left: 20px; border-left: 2px solid var(--divider); position: relative; }
         .item-row:last-child { margin-bottom: 0; border-left: 2px solid transparent; }
         .item-row::before { content: ''; position: absolute; left: -6px; top: 7px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px rgba(255,255,255,0.3); }
+        
+        .item-header { display: flex; justify-content: space-between; align-items: flex-start; }
         .time-badge { color: var(--accent); font-size: 15px; font-weight: 700; margin-bottom: 4px; line-height: 1.2; }
+        
+        /* 刪除按鈕樣式 */
+        .btn-delete-event { background: transparent; color: #555; border: none; padding: 5px; cursor: pointer; transition: color 0.2s; }
+        .btn-delete-event:active { color: var(--red); }
+
         .item-content { flex: 1; display: flex; flex-direction: column; }
         .item-title-link { font-weight: 700; font-size: 17px; display: block; color: var(--text-main); text-decoration: none; margin-bottom: 6px; }
-        .editable-desc { font-size: 14px; color: var(--text-sub); line-height: 1.6; white-space: pre-wrap; cursor: pointer; padding: 4px 0; border-bottom: 1px dashed transparent; }
-        
-        /* --- 記帳 --- */
+        .editable-desc { font-size: 14px; color: var(--text-sub); line-height: 1.6; white-space: pre-wrap; cursor: pointer; padding: 4px 0; }
+
+        /* --- 記帳樣式 --- */
         .bill-input { width: 100%; padding: 16px; border: none; background: #2C2C2C; color: white; border-radius: 16px; font-size: 20px; margin-bottom: 12px; text-align: center; font-weight: bold; }
         .category-group { display: flex; gap: 10px; margin-bottom: 25px; overflow-x: auto; padding-bottom: 5px; justify-content: center; }
-        .cat-btn { background: #2C2C2C; color: var(--text-sub); border: none; padding: 10px 20px; border-radius: 25px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.2s; }
+        .cat-btn { background: #2C2C2C; color: var(--text-sub); border: none; padding: 10px 20px; border-radius: 25px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
         .cat-btn.selected { background: var(--text-main); color: var(--bg-base); }
-
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .action-btn { padding: 16px; border: none; border-radius: 16px; font-weight: bold; font-size: 15px; cursor: pointer; color: white; display: flex; flex-direction: column; align-items: center; gap: 4px; }
         .action-btn span { font-size: 11px; opacity: 0.7; font-weight: normal; }
         .btn-tukai { background: var(--green); }
         .btn-yuan { background: var(--gold); color: black; }
-        
-        .bill-list { list-style: none; padding: 0; margin: 0; }
         .bill-item { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid var(--divider); }
-        .bill-left { display: flex; align-items: center; flex: 1; overflow: hidden; gap: 12px; }
         .bill-icon { width: 36px; height: 36px; border-radius: 50%; background: #2C2C2C; color: var(--text-main); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .bill-info-box { display: flex; flex-direction: column; overflow: hidden; }
+        .bill-info-box { display: flex; flex-direction: column; overflow: hidden; margin-left: 12px; flex: 1; }
         .bill-desc-text { font-size: 16px; color: var(--text-main); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .bill-meta { font-size: 12px; color: #666; margin-top: 2px; }
         .bill-amount { font-weight: 700; font-size: 18px; color: var(--text-main); white-space: nowrap; }
-        .btn-del { background: transparent; color: #666; border: none; padding: 8px; font-size: 16px; }
 
         .stats-box { background: #2B2D31; padding: 15px; border-radius: 12px; margin-top: 15px; margin-bottom: 30px; }
         .summary-box { background: #2B2D31; padding: 15px; border-radius: 12px; margin-bottom: 30px; text-align: center; }
         .summary-big { font-size: 28px; font-weight: 800; color: var(--text-main); margin-top: 5px; }
         .stats-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 10px; color: var(--text-sub); align-items: center; }
-        .stats-label { display: flex; align-items: center; gap: 8px; } /* 新增：讓icon跟文字對齊 */
-        .stats-row span:last-child { color: var(--text-main); font-weight: bold; }
+        .stats-label { display: flex; align-items: center; gap: 8px; }
 
         /* --- 底部導航 --- */
-        .bottom-nav { 
-            position: fixed; bottom: 0; left: 0; right: 0; width: 100%; 
-            background: rgba(18, 18, 18, 0.95); backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255,255,255,0.1);
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 10px 20px calc(15px + var(--safe-bottom)) 20px; z-index: 100;
-        }
-        .nav-btn { 
-            border: none; background: transparent; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: #555; font-size: 10px; font-weight: 500; flex: 1; transition: 0.2s;
-        }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; width: 100%; background: rgba(18, 18, 18, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; padding: 10px 20px calc(15px + var(--safe-bottom)) 20px; z-index: 100; }
+        .nav-btn { border: none; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #555; font-size: 10px; font-weight: 500; flex: 1; transition: 0.2s; }
         .nav-btn i { font-size: 24px; margin-bottom: 4px; }
         .nav-btn.active { color: #FFFFFF; }
-        .nav-btn.active i { transform: scale(1.1); }
 
         .view-section { display: none; animation: fadeIn 0.3s; }
         .view-section.active { display: block !important; }
@@ -194,7 +152,7 @@
         
         #loading-mask { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg-base); z-index:999; display:flex; justify-content:center; align-items:center; color: var(--text-sub); flex-direction: column; transition: opacity 0.5s; }
 
-        /* Modals */
+        /* FAB & Modals */
         .fab-btn { position: fixed; bottom: calc(80px + var(--safe-bottom)); right: 20px; width: 56px; height: 56px; background: var(--text-main); color: black; border-radius: 16px; display: none; justify-content: center; align-items: center; font-size: 28px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 90; border: none; cursor: pointer; }
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 200; justify-content: center; align-items: center; }
         .modal-content { background: #1E1E1E; width: 85%; max-width: 400px; padding: 25px; border-radius: 24px; }
@@ -249,16 +207,18 @@
         </div>
     </header>
 
+    <div class="scroll-menu" id="day-tabs-container"></div>
+
     <div class="content-area">
         
         <div id="view-home" class="view-section active">
-            <div class="card weather-card">
+            <div class="card weather-card" style="text-align:center;">
                 <div style="font-size:14px; color:#888; margin-bottom:10px;">目前東京天氣</div>
-                <div class="weather-main">
+                <div style="display:flex; justify-content:center; align-items:center; gap:15px;">
                     <i class="ri-sun-cloudy-fill" style="font-size:48px; color:white;"></i>
-                    <div class="temp-big" id="home-temp" style="font-size:48px; font-weight:900;">--°</div>
+                    <div id="home-temp" style="font-size:48px; font-weight:900;">--°</div>
                 </div>
-                <div id="home-rain" style="color:#4facfe; margin-top:5px;">降雨機率 --%</div>
+                <div id="home-rain" style="color:#4facfe; margin-top:10px;">降雨機率 --%</div>
             </div>
             <div class="card" style="border-left: 4px solid white;">
                 <div style="font-size:12px; color:#888; margin-bottom:5px;">現在狀態</div>
@@ -273,7 +233,6 @@
         </div>
 
         <div id="view-schedule" class="view-section">
-            <div class="scroll-menu" id="day-tabs"></div>
             <div id="schedule-container"></div>
             <button class="fab-btn" id="fab-add" onclick="openAdd()"><i class="ri-add-line"></i></button>
         </div>
@@ -284,7 +243,6 @@
                     <h2><i class="ri-group-fill"></i> 公款分帳</h2>
                     <input type="text" id="splitDesc" class="bill-input" placeholder="項目名稱">
                     <input type="number" id="splitAmount" class="bill-input" placeholder="¥ 金額">
-                    <div style="margin-bottom:8px; font-size:12px; color:#888;">選擇類別</div>
                     <div class="category-group" id="splitCats">
                         <button class="cat-btn" onclick="selectCat('split', '飲食')"><i class="ri-restaurant-line"></i> 飲食</button>
                         <button class="cat-btn" onclick="selectCat('split', '交通')"><i class="ri-bus-line"></i> 交通</button>
@@ -292,10 +250,10 @@
                         <button class="cat-btn selected" onclick="selectCat('split', '其他')"><i class="ri-box-3-line"></i> 其他</button>
                     </div>
                     <div class="btn-grid">
-                        <button class="action-btn btn-tukai" onclick="addSplit('TukaiAll')">土開 付全額<span>(兩人均分)</span></button>
-                        <button class="action-btn btn-yuan" onclick="addSplit('YuanAll')">元戎 付全額<span>(兩人均分)</span></button>
-                        <button class="action-btn" style="background:#333" onclick="addSplit('TukaiHelp')">土開 幫墊<span>(對方還全額)</span></button>
-                        <button class="action-btn" style="background:#333" onclick="addSplit('YuanHelp')">元戎 幫墊<span>(我還全額)</span></button>
+                        <button class="action-btn btn-tukai" onclick="addSplit('TukaiAll')">土開 付全額<span>(均分)</span></button>
+                        <button class="action-btn btn-yuan" onclick="addSplit('YuanAll')">元戎 付全額<span>(均分)</span></button>
+                        <button class="action-btn" style="background:#333" onclick="addSplit('TukaiHelp')">土開 幫墊<span>(對方還)</span></button>
+                        <button class="action-btn" style="background:#333" onclick="addSplit('YuanHelp')">元戎 幫墊<span>(我還)</span></button>
                     </div>
                 </div>
                 <div class="summary-box">
@@ -319,10 +277,7 @@
                     <button class="action-btn" style="width:100%; background:white; color:black;" onclick="addPersonal()">加入個人記帳</button>
                 </div>
                 <div class="stats-box" id="statsBox"></div>
-                <div class="summary-box">
-                    <div style="font-size:12px; color:#888;">我的總花費</div>
-                    <div class="summary-big" id="personalResult">¥ 0</div>
-                </div>
+                <div class="summary-box"><div style="font-size:12px; color:#888;">我的總花費</div><div class="summary-big" id="personalResult">¥ 0</div></div>
                 <div class="card"><ul class="bill-list" id="personalList"></ul></div>
             </div>
         </div>
@@ -340,15 +295,13 @@
     </nav>
 
     <script>
-        // --- 核心資料 (預設行程) ---
+        // --- 核心資料 (已移除吉卜力) ---
         const scheduleData = [
             { id: 'day1', date: '5/17 (日)', events: [
                 { time: '15:20', title: '抵達成田機場', link: 'https://www.google.com/maps/search/?api=1&query=成田國際機場', desc: '• 入境檢查\n• 領取行李\n• 購買 Skyliner 車票' },
                 { time: '18:00', title: 'Check-in 上野飯店', link: 'https://www.google.com/maps/search/?api=1&query=上野車站', desc: '• 搭乘 Skyliner 直達上野\n• 先放行李' }
             ]},
-            { id: 'day2', date: '5/18 (一)', events: [
-                { time: '10:00', title: '吉卜力美術館', link: 'https://www.google.com/maps/search/?api=1&query=三鷹之森吉卜力美術館', desc: '• ⚠️ 務必攜帶護照\n• 準時入場' }
-            ]},
+            { id: 'day2', date: '5/18 (一)', events: [] }, // 已移除吉卜力
             { id: 'day3', date: '5/19 (二)', events: [
                 { time: '全天', title: '市區探索', link: '', desc: '• 澀谷 Sky 觀景台\n• 新宿逛街' }
             ]},
@@ -367,6 +320,7 @@
         let currentUser = localStorage.getItem('currentUser') || 'Tukai';
         let splitLogs = [];
         let personalLogs = JSON.parse(localStorage.getItem('personalLogs')) || [];
+        let hiddenDefaults = []; // 用來存被隱藏(刪除)的預設行程 ID
         let currentCat = { split: '其他', personal: '其他' };
         let currentEditId = null;
 
@@ -378,31 +332,44 @@
             deleteDoc = window.deleteDoc; doc = window.doc; setDoc = window.setDoc;
 
             try {
-                const q = query(collection(db, "splitLogs"), orderBy("timestamp", "desc"));
-                onSnapshot(q, (snapshot) => {
-                    splitLogs = [];
-                    snapshot.forEach((d) => splitLogs.push({ id: d.id, ...d.data() }));
-                    renderSplitUI();
-                    const mask = document.getElementById('loading-mask');
-                    if(mask) { mask.style.opacity = 0; setTimeout(()=>mask.style.display='none',500); }
+                // 1. 記帳
+                onSnapshot(query(collection(db, "splitLogs"), orderBy("timestamp", "desc")), (snapshot) => {
+                    splitLogs = []; snapshot.forEach(d => splitLogs.push({ id: d.id, ...d.data() })); renderSplitUI();
+                    const m=document.getElementById('loading-mask'); if(m) { m.style.opacity=0; setTimeout(()=>m.style.display='none',500); }
                 });
 
+                // 2. 預設行程修改與隱藏監聽
                 onSnapshot(collection(db, "itinerary_edits"), (snapshot) => {
-                    snapshot.forEach((doc) => {
-                        const el = document.querySelector(`.editable-desc[onclick*="'${doc.id}'"]`);
-                        if (el && doc.data().text) el.innerHTML = doc.data().text.replace(/\n/g, '<br>');
+                    snapshot.forEach(d => {
+                        const data = d.data();
+                        if (data.hidden) {
+                            if (!hiddenDefaults.includes(d.id)) hiddenDefaults.push(d.id);
+                            renderSchedule(); // 重新渲染以隱藏
+                        } else {
+                            const el = document.querySelector(`.editable-desc[onclick*="'${d.id}'"]`);
+                            if (el && data.text) el.innerHTML = data.text.replace(/\n/g, '<br>');
+                        }
                     });
                 });
 
-                const qEvt = query(collection(db, "custom_events"), orderBy("time"));
-                onSnapshot(qEvt, (snap) => {
+                // 3. 自定義行程監聽
+                onSnapshot(query(collection(db, "custom_events"), orderBy("time")), (snap) => {
                     document.querySelectorAll('[id^="extra-"]').forEach(e=>e.innerHTML='');
                     snap.forEach(d => {
-                        const data = d.data();
-                        const container = document.getElementById(`extra-${data.dayId}`);
+                        const data = d.data(); const container = document.getElementById(`extra-${data.dayId}`);
                         if(container) {
                             const linkHtml = data.link ? `<a href="${data.link}" class="item-title-link" target="_blank">${data.title}</a>` : `<span class="item-title-link">${data.title}</span>`;
-                            container.insertAdjacentHTML('beforeend', `<div class="item-row"><div class="time-badge">${data.time}</div><div class="item-content">${linkHtml}<div class="editable-desc" onclick="openEdit(this,'${d.id}')">${data.desc.replace(/\n/g,'<br>')}</div></div></div>`);
+                            container.insertAdjacentHTML('beforeend', `
+                            <div class="item-row">
+                                <div class="item-header">
+                                    <div class="time-badge">${data.time}</div>
+                                    <button class="btn-delete-event" onclick="deleteEvent('${d.id}', false)"><i class="ri-delete-bin-line"></i></button>
+                                </div>
+                                <div class="item-content">
+                                    ${linkHtml}
+                                    <div class="editable-desc" onclick="openEdit(this,'${d.id}')">${data.desc.replace(/\n/g,'<br>')}</div>
+                                </div>
+                            </div>`);
                         }
                     });
                 });
@@ -410,39 +377,30 @@
         });
 
         document.addEventListener('DOMContentLoaded', () => {
-            renderSchedule();
-            renderChecklist();
-            updateClock(); setInterval(updateClock, 1000); getWeather();
-            updateUserUI();
-            switchTab('home');
+            renderSchedule(); renderChecklist(); updateClock(); setInterval(updateClock, 1000); getWeather(); updateUserUI(); switchTab('home');
         });
 
-        function toggleUserIdentity() {
-            currentUser = currentUser === 'Tukai' ? 'Yuan' : 'Tukai';
-            localStorage.setItem('currentUser', currentUser);
-            updateUserUI();
-            renderPersonalUI();
+        // --- 行程刪除功能 ---
+        async function deleteEvent(id, isDefault) {
+            if (!confirm("確定要刪除此行程嗎？(雙方手機都會同步移除)")) return;
+            try {
+                if (isDefault) {
+                    // 預設行程：在 itinerary_edits 標記為 hidden
+                    await setDoc(doc(db, "itinerary_edits", id), { hidden: true }, { merge: true });
+                } else {
+                    // 自定義行程：直接從 Firebase 刪除
+                    await deleteDoc(doc(db, "custom_events", id));
+                }
+            } catch (e) { alert("刪除失敗"); }
         }
 
-        function updateUserUI() {
-            const btnText = document.getElementById('header-user-name');
-            const btnDot = document.getElementById('user-dot');
-            btnText.innerText = currentUser === 'Tukai' ? '我是土開' : '我是元戎';
-            
-            // 切換顏色
-            if (currentUser === 'Tukai') {
-                btnDot.className = 'user-dot dot-green';
-            } else {
-                btnDot.className = 'user-dot dot-gold';
-            }
-            
-            document.getElementById('wallet-title').innerHTML = `<i class="ri-wallet-3-fill"></i> ${currentUser==='Tukai'?'土開':'元戎'}的錢包`;
-        }
-
+        // --- UI 渲染與邏輯 ---
         function renderSchedule() {
-            const tabs = document.getElementById('day-tabs');
+            const tabsContainer = document.getElementById('day-tabs-container');
             const container = document.getElementById('schedule-container');
-            tabs.innerHTML = ''; container.innerHTML = '';
+            tabsContainer.innerHTML = '<div class="scroll-menu" id="day-tabs"></div>';
+            const tabs = document.getElementById('day-tabs');
+            container.innerHTML = '';
 
             scheduleData.forEach((day, index) => {
                 const chip = document.createElement('button');
@@ -457,193 +415,91 @@
                 tabs.appendChild(chip);
 
                 const dayDiv = document.createElement('div');
-                dayDiv.id = `view-${day.id}`;
-                dayDiv.className = `day-container ${index===0?'active':''}`;
+                dayDiv.id = `view-${day.id}`; dayDiv.className = `day-container ${index===0?'active':''}`;
                 
                 let eventsHtml = '';
                 day.events.forEach((evt, i) => {
                     const editId = `${day.id}_e${i}`;
+                    if (hiddenDefaults.includes(editId)) return; // 被隱藏就不顯示
+                    
                     const linkHtml = evt.link ? `<a href="${evt.link}" class="item-title-link" target="_blank">${evt.title}</a>` : `<span class="item-title-link">${evt.title}</span>`;
-                    eventsHtml += `<div class="item-row"><div class="time-badge">${evt.time}</div><div class="item-content">${linkHtml}<div class="editable-desc" onclick="openEdit(this, '${editId}')">${evt.desc.replace(/\n/g, '<br>')}</div></div></div>`;
+                    eventsHtml += `
+                    <div class="item-row">
+                        <div class="item-header">
+                            <div class="time-badge">${evt.time}</div>
+                            <button class="btn-delete-event" onclick="deleteEvent('${editId}', true)"><i class="ri-delete-bin-line"></i></button>
+                        </div>
+                        <div class="item-content">
+                            ${linkHtml}
+                            <div class="editable-desc" onclick="openEdit(this, '${editId}')">${evt.desc.replace(/\n/g, '<br>')}</div>
+                        </div>
+                    </div>`;
                 });
-
                 dayDiv.innerHTML = `<div class="card"><h2><i class="ri-calendar-event-fill"></i> ${day.date}</h2>${eventsHtml}<div id="extra-${day.id}"></div></div>`;
                 container.appendChild(dayDiv);
             });
         }
 
-        function renderChecklist() {
-            const c = document.getElementById('checklist-container');
-            const items = ["護照", "VJW 截圖", "網卡/eSIM", "日幣現金", "行動電源", "充電線", "牙刷/牙膏", "常備藥"];
-            const saved = JSON.parse(localStorage.getItem('checklistState')) || {};
-            c.innerHTML = '';
-            items.forEach(i => {
-                const checked = saved[i] ? 'checked' : '';
-                c.innerHTML += `<label class="check-item ${checked}" onclick="toggleCheck(this, '${i}')"><input type="checkbox" ${checked}><span>${i}</span></label>`;
-            });
-        }
-        function toggleCheck(el, i) {
-            const cb = el.querySelector('input'); 
-            if(event.target!==cb) cb.checked=!cb.checked;
-            el.classList.toggle('checked', cb.checked);
-            const s = JSON.parse(localStorage.getItem('checklistState'))||{}; 
-            s[i]=cb.checked;
-            localStorage.setItem('checklistState', JSON.stringify(s));
-        }
-
+        function toggleUserIdentity() { currentUser = currentUser === 'Tukai' ? 'Yuan' : 'Tukai'; localStorage.setItem('currentUser', currentUser); updateUserUI(); renderPersonalUI(); }
+        function updateUserUI() { const btnText = document.getElementById('header-user-name'); const btnDot = document.getElementById('user-dot'); btnText.innerText = currentUser === 'Tukai' ? '我是土開' : '我是元戎'; btnDot.className = `user-dot ${currentUser==='Tukai'?'dot-green':'dot-gold'}`; document.getElementById('wallet-title').innerHTML = `<i class="ri-wallet-3-fill"></i> ${currentUser==='Tukai'?'土開':'元戎'}的錢包`; }
         function switchTab(tab) {
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.nav-btn i').forEach(i => i.className = i.className.replace('-fill','-line'));
             const targetBtn = document.querySelector(`.nav-btn[onclick="switchTab('${tab}')"]`);
-            if(targetBtn) {
-                targetBtn.classList.add('active');
-                targetBtn.querySelector('i').className = targetBtn.querySelector('i').className.replace('-line','-fill');
-            }
+            if(targetBtn) { targetBtn.classList.add('active'); targetBtn.querySelector('i').className = targetBtn.querySelector('i').className.replace('-line','-fill'); }
             document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
             document.getElementById(`view-${tab}`).classList.add('active');
-            
-            if(tab==='money') {
-                document.getElementById('sub-split').classList.add('active');
-                document.getElementById('sub-wallet').classList.add('active');
-            }
-            if(tab==='schedule') {
-                document.getElementById('fab-add').style.display='flex';
-            } else {
-                document.getElementById('fab-add').style.display='none';
-            }
+            if(tab==='money') { document.getElementById('sub-split').classList.add('active'); document.getElementById('sub-wallet').classList.add('active'); }
+            document.getElementById('fab-add').style.display = tab==='schedule' ? 'flex' : 'none';
         }
 
         function renderSplitUI() {
-            const list = document.getElementById('splitList'); list.innerHTML = '';
-            let debt = 0;
+            const list = document.getElementById('splitList'); list.innerHTML = ''; let debt = 0;
             splitLogs.forEach(log => {
-                if (log.type === 'TukaiAll') debt += (log.amount/2);
-                if (log.type === 'YuanAll') debt -= (log.amount/2);
-                if (log.type === 'TukaiHelp') debt += log.amount;
-                if (log.type === 'YuanHelp') debt -= log.amount;
-                let payer = log.type.includes('Tukai') ? '土開' : '元戎';
-                let iconMap = {'飲食':'ri-restaurant-line','交通':'ri-bus-line','購物':'ri-shopping-bag-3-line','其他':'ri-box-3-line'};
-                let icon = iconMap[log.cat] || 'ri-money-cny-circle-line';
-                list.innerHTML += `<li class="bill-item"><div class="bill-left"><div class="bill-icon"><i class="${icon}"></i></div><div class="bill-content"><div class="bill-desc">${log.desc}</div><div class="bill-meta">${log.time} · ${payer}付</div></div></div><div class="bill-right"><div class="bill-amount">¥${log.amount}</div><button class="btn-del" onclick="deleteSplit('${log.id}')"><i class="ri-delete-bin-line"></i></button></div></li>`;
+                if (log.type === 'TukaiAll') debt += (log.amount/2); if (log.type === 'YuanAll') debt -= (log.amount/2); if (log.type === 'TukaiHelp') debt += log.amount; if (log.type === 'YuanHelp') debt -= log.amount;
+                const icon = {'飲食':'ri-restaurant-line','交通':'ri-bus-line','購物':'ri-shopping-bag-3-line','其他':'ri-box-3-line'}[log.cat] || 'ri-money-cny-circle-line';
+                list.innerHTML += `<li class="bill-item"><div class="bill-left"><div class="bill-icon"><i class="${icon}"></i></div><div class="bill-info-box"><div class="bill-desc-text">${log.desc}</div><div class="bill-meta">${log.time} · ${log.type.includes('Tukai')?'土開':'元戎'}付</div></div></div><div class="bill-right"><div class="bill-amount">¥${log.amount}</div><button class="btn-del" onclick="deleteSplit('${log.id}')"><i class="ri-delete-bin-line"></i></button></div></li>`;
             });
             const res = document.getElementById('splitResult');
-            if(debt > 0) res.innerText = `元戎 給 土開 ¥${Math.ceil(debt)}`;
-            else if(debt < 0) res.innerText = `土開 給 元戎 ¥${Math.ceil(Math.abs(debt))}`;
-            else res.innerText = "目前結清";
+            if(debt > 0) res.innerText = `元戎 給 土開 ¥${Math.ceil(debt)}`; else if(debt < 0) res.innerText = `土開 給 元戎 ¥${Math.ceil(Math.abs(debt))}`; else res.innerText = "目前結清";
             renderPersonalUI();
         }
 
         function renderPersonalUI() {
-            const list = document.getElementById('personalList'); list.innerHTML = '';
-            const statsBox = document.getElementById('statsBox');
-            let total = 0;
-            let stats = { '飲食':0, '交通':0, '購物':0, '其他':0 };
-            
+            const list = document.getElementById('personalList'); list.innerHTML = ''; const statsBox = document.getElementById('statsBox'); let total = 0; let stats = { '飲食':0, '交通':0, '購物':0, '其他':0 };
             let myLogs = [...personalLogs];
             splitLogs.forEach(log => {
                 let myShare = 0;
-                if (currentUser === 'Tukai') {
-                    if (log.type === 'TukaiAll' || log.type === 'YuanAll') myShare = log.amount/2;
-                    else if (log.type === 'YuanHelp') myShare = log.amount;
-                } else {
-                    if (log.type === 'TukaiAll' || log.type === 'YuanAll') myShare = log.amount/2;
-                    else if (log.type === 'TukaiHelp') myShare = log.amount;
-                }
+                if (currentUser === 'Tukai') { if (log.type === 'TukaiAll' || log.type === 'YuanAll') myShare = log.amount/2; else if (log.type === 'YuanHelp') myShare = log.amount; }
+                else { if (log.type === 'TukaiAll' || log.type === 'YuanAll') myShare = log.amount/2; else if (log.type === 'TukaiHelp') myShare = log.amount; }
                 if (myShare > 0) myLogs.push({ desc: `(公) ${log.desc}`, amount: myShare, cat: log.cat, time: log.time, isCloud: true });
             });
-            
             myLogs.sort((a,b) => b.time > a.time ? 1 : -1);
-
             myLogs.forEach((log, idx) => {
-                total += log.amount;
-                let c = log.cat || '其他';
-                if(stats[c]===undefined) stats['其他'] += log.amount; else stats[c] += log.amount;
-                let iconMap = {'飲食':'ri-restaurant-line','交通':'ri-bus-line','購物':'ri-shopping-bag-3-line','其他':'ri-box-3-line'};
-                let icon = iconMap[log.cat] || 'ri-money-cny-circle-line';
-                let delBtn = log.isCloud ? '' : `<button class="btn-del" onclick="deletePersonal(${idx})"><i class="ri-delete-bin-line"></i></button>`;
-                list.innerHTML += `<li class="bill-item"><div class="bill-left"><div class="bill-icon"><i class="${icon}"></i></div><div class="bill-content"><div class="bill-desc">${log.desc}</div><div class="bill-meta">${log.time}</div></div></div><div class="bill-right"><div class="bill-amount">¥${log.amount}</div>${delBtn}</div></li>`;
+                total += log.amount; let c = log.cat || '其他'; if(stats[c]===undefined) stats['其他'] += log.amount; else stats[c] += log.amount;
+                const icon = {'飲食':'ri-restaurant-line','交通':'ri-bus-line','購物':'ri-shopping-bag-3-line','其他':'ri-box-3-line'}[log.cat] || 'ri-money-cny-circle-line';
+                list.innerHTML += `<li class="bill-item"><div class="bill-left"><div class="bill-icon"><i class="${icon}"></i></div><div class="bill-info-box"><div class="bill-desc-text">${log.desc}</div><div class="bill-meta">${log.time}</div></div></div><div class="bill-right"><div class="bill-amount">¥${log.amount}</div>${log.isCloud?'':`<button class="btn-del" onclick="deletePersonal(${idx})"><i class="ri-delete-bin-line"></i></button>`}</div></li>`;
             });
             document.getElementById('personalResult').innerText = `¥ ${Math.ceil(total)}`;
-            statsBox.innerHTML = `
-                <div style="font-size:13px; font-weight:bold; margin-bottom:15px; color:#888;">消費統計</div>
-                <div class="stats-row"><div class="stats-label"><i class="ri-restaurant-line"></i> <span>飲食</span></div><span>¥${stats['飲食']}</span></div>
-                <div class="stats-row"><div class="stats-label"><i class="ri-bus-line"></i> <span>交通</span></div><span>¥${stats['交通']}</span></div>
-                <div class="stats-row"><div class="stats-label"><i class="ri-shopping-bag-3-line"></i> <span>購物</span></div><span>¥${stats['購物']}</span></div>
-                <div class="stats-row"><div class="stats-label"><i class="ri-box-3-line"></i> <span>其他</span></div><span>¥${stats['其他']}</span></div>
-            `;
+            statsBox.innerHTML = `<div style="font-size:13px; font-weight:bold; margin-bottom:15px; color:#888;">消費統計</div>` + Object.keys(stats).map(k => `<div class="stats-row"><div class="stats-label"><i class="${{'飲食':'ri-restaurant-line','交通':'ri-bus-line','購物':'ri-shopping-bag-3-line','其他':'ri-box-3-line'}[k]}"></i><span>${k}</span></div><span>¥${stats[k]}</span></div>`).join('');
         }
 
-        function selectCat(type, cat) {
-            currentCat[type] = cat;
-            const container = document.getElementById(type+'Cats');
-            Array.from(container.children).forEach(b => {
-                if(b.innerText.includes(cat)) b.classList.add('selected'); else b.classList.remove('selected');
-            });
-        }
-        async function addSplit(type) {
-            if(!db) return alert("連線中...");
-            const desc = document.getElementById('splitDesc').value;
-            const amount = parseInt(document.getElementById('splitAmount').value);
-            if(!desc || isNaN(amount)) return alert("請輸入");
-            const timeStr = new Date().toLocaleString('zh-TW', {hour12:false, month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'});
-            try { await addDoc(collection(db, "splitLogs"), { desc, amount, type, cat: currentCat.split, time: timeStr, timestamp: new Date() }); } catch(e) { alert("Error"); }
-            document.getElementById('splitDesc').value = ''; document.getElementById('splitAmount').value = '';
-        }
+        // --- 其餘輔助功能 ---
+        function selectCat(t, c) { currentCat[t] = c; const group = document.getElementById(t+'Cats'); Array.from(group.children).forEach(b => b.classList.toggle('selected', b.innerText.includes(c))); }
+        async function addSplit(type) { if(!db) return; const desc = document.getElementById('splitDesc').value; const amount = parseInt(document.getElementById('splitAmount').value); if(!desc || !amount) return; await addDoc(collection(db, "splitLogs"), { desc, amount, type, cat: currentCat.split, time: new Date().toLocaleString('zh-TW', {hour12:false, month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'}), timestamp: new Date() }); document.getElementById('splitDesc').value=''; document.getElementById('splitAmount').value=''; }
         async function deleteSplit(id) { if(confirm("刪除？")) await deleteDoc(doc(db, "splitLogs", id)); }
-        function addPersonal() {
-            const desc = document.getElementById('personalDesc').value;
-            const amount = parseInt(document.getElementById('personalAmount').value);
-            if(!desc || isNaN(amount)) return alert("請輸入");
-            const timeStr = new Date().toLocaleString('zh-TW', {hour12:false, month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'});
-            personalLogs.unshift({ desc, amount, cat: currentCat.personal, time: timeStr });
-            localStorage.setItem('personalLogs', JSON.stringify(personalLogs));
-            renderPersonalUI();
-            document.getElementById('personalDesc').value = ''; document.getElementById('personalAmount').value = '';
-        }
-        function deletePersonal(idx) { if(confirm("刪除？")) { personalLogs.splice(idx, 1); localStorage.setItem('personalLogs', JSON.stringify(personalLogs)); renderPersonalUI(); } }
-        function updateClock() {
-            const now = new Date();
-            const tripDate = new Date('2026-05-17T00:00:00');
-            document.getElementById('date-display').innerText = now.toLocaleDateString('zh-TW', {month:'numeric', day:'numeric', weekday:'short'}).replace('週','');
-            const diffDays = Math.ceil((tripDate - now) / (1000 * 60 * 60 * 24));
-            const badge = document.getElementById('countdown');
-            if(diffDays>0) badge.innerText = `🇯🇵 倒數 ${diffDays} 天`;
-            else badge.innerText = `🚀 東京 Day ${Math.abs(diffDays)+1}`;
-        }
-        function getWeather() {
-            fetch(`https://api.open-meteo.com/v1/forecast?latitude=35.6895&longitude=139.6917&current_weather=true&hourly=precipitation_probability`)
-            .then(r=>r.json()).then(d=>{
-                document.getElementById('home-temp').innerText = Math.round(d.current_weather.temperature) + '°';
-                document.getElementById('weather').innerText = Math.round(d.current_weather.temperature) + '°';
-                document.getElementById('home-rain').innerText = `降雨機率 ${d.hourly.precipitation_probability[new Date().getHours()]}%`;
-                document.getElementById('rain-chance').innerHTML = `💧 ${d.hourly.precipitation_probability[new Date().getHours()]}%`;
-            });
-        }
+        function addPersonal() { const desc = document.getElementById('personalDesc').value; const amount = parseInt(document.getElementById('personalAmount').value); if(!desc || !amount) return; personalLogs.unshift({ desc, amount, cat: currentCat.personal, time: new Date().toLocaleString('zh-TW', {hour12:false, month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'}) }); localStorage.setItem('personalLogs', JSON.stringify(personalLogs)); renderPersonalUI(); document.getElementById('personalDesc').value=''; document.getElementById('personalAmount').value=''; }
+        function deletePersonal(i) { if(confirm("刪除？")) { personalLogs.splice(i, 1); localStorage.setItem('personalLogs', JSON.stringify(personalLogs)); renderPersonalUI(); } }
+        function renderChecklist() { const c = document.getElementById('checklist-container'); const items = ["護照", "VJW 截圖", "網卡/eSIM", "日幣現金", "行動電源", "充電線", "牙刷/牙膏", "常備藥"]; const saved = JSON.parse(localStorage.getItem('checklistState')) || {}; c.innerHTML = items.map(i => `<label class="check-item ${saved[i]?'checked':''}" onclick="toggleCheck(this,'${i}')"><input type="checkbox" ${saved[i]?'checked':''}><span>${i}</span></label>`).join(''); }
+        function toggleCheck(el, i) { const cb = el.querySelector('input'); if(event.target!==cb) cb.checked=!cb.checked; el.classList.toggle('checked', cb.checked); const s = JSON.parse(localStorage.getItem('checklistState'))||{}; s[i]=cb.checked; localStorage.setItem('checklistState', JSON.stringify(s)); }
+        function updateClock() { const now = new Date(); const tripDate = new Date('2026-05-17T00:00:00'); document.getElementById('date-display').innerText = now.toLocaleDateString('zh-TW', {month:'numeric', day:'numeric', weekday:'short'}).replace('週',''); const diff = Math.ceil((tripDate - now) / (1000*60*60*24)); document.getElementById('countdown').innerText = diff>0 ? `🇯🇵 倒數 ${diff} 天` : `🚀 東京 Day ${Math.abs(diff)+1}`; }
+        function getWeather() { fetch(`https://api.open-meteo.com/v1/forecast?latitude=35.6895&longitude=139.6917&current_weather=true&hourly=precipitation_probability`).then(r=>r.json()).then(d=>{ document.getElementById('home-temp').innerText = document.getElementById('weather').innerText = Math.round(d.current_weather.temperature) + '°'; document.getElementById('home-rain').innerText = document.getElementById('rain-chance').innerText = `💧 ${d.hourly.precipitation_probability[new Date().getHours()]}%`; }); }
         function openEdit(el, id) { currentEditId=id; document.getElementById('modal-input').value=el.innerText.replace(/• /g,''); document.getElementById('edit-modal').style.display='flex'; }
         function closeEdit() { document.getElementById('edit-modal').style.display='none'; }
-        function saveEdit() {
-            const txt = document.getElementById('modal-input').value.trim();
-            const final = txt.split('\n').map(l=>l.trim()?(l.startsWith('•')?l:'• '+l):'').join('\n');
-            const col = currentEditId.startsWith('d') ? "itinerary_edits" : "custom_events";
-            const field = col==="itinerary_edits" ? "text" : "desc";
-            if(window.db) setDoc(doc(window.db, col, currentEditId), {[field]:final}, {merge:true});
-            closeEdit();
-        }
+        function saveEdit() { const txt = document.getElementById('modal-input').value.trim(); const final = txt.split('\n').map(l=>l.trim()?(l.startsWith('•')?l:'• '+l):'').join('\n'); const col = currentEditId.startsWith('day') ? "itinerary_edits" : "custom_events"; const field = col==="itinerary_edits" ? "text" : "desc"; if(window.db) setDoc(doc(window.db, col, currentEditId), {[field]:final}, {merge:true}); closeEdit(); }
         function openAdd() { document.getElementById('add-modal').style.display='flex'; }
         function closeAdd() { document.getElementById('add-modal').style.display='none'; }
-        async function saveNewEvent() {
-            const dayId = document.getElementById('add-date').value;
-            const title = document.getElementById('add-title').value;
-            if(!title) return;
-            let desc = document.getElementById('add-desc').value.trim();
-            if(desc) desc = desc.split('\n').map(l=>l.trim().startsWith('•')?l.trim():'• '+l.trim()).join('\n');
-            if(window.db) await addDoc(collection(window.db, "custom_events"), {
-                dayId, time: document.getElementById('add-time').value||'待定',
-                title, link: document.getElementById('add-link').value,
-                desc, createdAt: new Date()
-            });
-            closeAdd();
-        }
+        async function saveNewEvent() { const dayId = document.getElementById('add-date').value; const title = document.getElementById('add-title').value; if(!title) return; let desc = document.getElementById('add-desc').value.trim(); if(desc) desc = desc.split('\n').map(l=>l.trim().startsWith('•')?l.trim():'• '+l.trim()).join('\n'); if(window.db) await addDoc(collection(window.db, "custom_events"), { dayId, time: document.getElementById('add-time').value||'待定', title, link: document.getElementById('add-link').value, desc, createdAt: new Date() }); closeAdd(); }
     </script>
 </body>
 </html>
